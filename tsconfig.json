@@ -39,6 +39,9 @@
     }
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "dist",
+    "src/__tests__",
+    "e2e"
   ]
 }
