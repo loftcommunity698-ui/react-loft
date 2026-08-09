@@ -2,20 +2,16 @@ import { motion } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { JobSummary, JOB_TYPE_LABELS, WORK_MODE_LABELS, JOB_STATUS_LABELS } from '../types'
+import { JobSummary, SENIORITY_LABELS } from '../types'
 import { formatSalaryRange } from '../services/jobService'
 import { cn } from '@/lib/utils'
 import {
   MapPin,
-  Eye,
-  Users,
-  Clock,
   Edit,
   Trash2,
   Star,
   ExternalLink,
-  Globe,
-  Briefcase
+  Briefcase,
 } from 'lucide-react'
 
 interface JobCardProps {
@@ -27,13 +23,6 @@ interface JobCardProps {
   className?: string
 }
 
-const statusColors: Record<string, { bg: string; text: string; border: string }> = {
-  DRAFT: { bg: 'bg-neutral-500/10', text: 'text-muted-foreground', border: 'border-neutral-500/30' },
-  PUBLISHED: { bg: 'bg-emerald-500/10', text: 'text-emerald-400', border: 'border-emerald-500/30' },
-  CLOSED: { bg: 'bg-red-500/10', text: 'text-red-400', border: 'border-red-500/30' },
-  ARCHIVED: { bg: 'bg-yellow-500/10', text: 'text-yellow-400', border: 'border-yellow-500/30' },
-}
-
 export function JobCard({
   job,
   onClick,
@@ -42,8 +31,7 @@ export function JobCard({
   onToggleFeatured,
   className,
 }: JobCardProps) {
-  const status = statusColors[job.status] || statusColors.DRAFT
-  const salary = formatSalaryRange(job.salaryMin, job.salaryMax, job.salaryCurrency)
+  const salary = formatSalaryRange(job.salaryMin, job.salaryMax, job.currency)
 
   return (
     <motion.div
@@ -63,7 +51,7 @@ export function JobCard({
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
-                {job.isFeatured && (
+                {job.featured && (
                   <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
                 )}
                 <CardTitle className="text-lg text-foreground">
@@ -72,18 +60,11 @@ export function JobCard({
               </div>
               <div className="flex items-center gap-2 text-muted-foreground text-sm">
                 <Briefcase className="w-4 h-4" />
-                {JOB_TYPE_LABELS[job.jobType] || job.jobType}
-                {job.workMode && (
-                  <>
-                    <span>•</span>
-                    <Globe className="w-4 h-4" />
-                    {WORK_MODE_LABELS[job.workMode] || job.workMode}
-                  </>
-                )}
+                {job.company}
               </div>
             </div>
-            <Badge className={cn('border', status.bg, status.text, status.border)}>
-              {JOB_STATUS_LABELS[job.status] || job.status}
+            <Badge className="border bg-emerald-500/10 text-emerald-400 border-emerald-500/30">
+              {SENIORITY_LABELS[job.seniority] || job.seniority}
             </Badge>
           </div>
         </CardHeader>
@@ -91,7 +72,7 @@ export function JobCard({
         <CardContent className="space-y-4">
           <div className="flex items-center gap-2 text-muted-foreground text-sm">
             <MapPin className="w-4 h-4" />
-            {job.remoteWork ? (
+            {job.remote ? (
               <span className="text-emerald-400">Remote</span>
             ) : (
               job.location || 'Location not specified'
@@ -104,19 +85,15 @@ export function JobCard({
             </div>
           )}
 
-          <div className="flex items-center gap-4 text-sm">
-            <div className="flex items-center gap-1 text-muted-foreground">
-              <Eye className="w-4 h-4" />
-              <span>{job.viewsCount} views</span>
-            </div>
-            <div className="flex items-center gap-1 text-muted-foreground">
-              <Users className="w-4 h-4" />
-              <span>{job.applicationsCount} applications</span>
-            </div>
-            <div className="flex items-center gap-1 text-muted-foreground">
-              <Clock className="w-4 h-4" />
-              <span>{new Date(job.createdAt).toLocaleDateString()}</span>
-            </div>
+          <div className="flex flex-wrap gap-2">
+            <Badge variant="secondary" className="bg-muted text-muted-foreground">
+              {job.category}
+            </Badge>
+            {job.tags.slice(0, 4).map(tag => (
+              <Badge key={tag} variant="secondary" className="bg-muted text-muted-foreground">
+                {tag}
+              </Badge>
+            ))}
           </div>
 
           <div className="flex gap-2 pt-2 border-t border-border">
@@ -140,14 +117,14 @@ export function JobCard({
                 variant="outline"
                 className={cn(
                   'border-border',
-                  job.isFeatured && 'text-yellow-400 border-yellow-400/30'
+                  job.featured && 'text-yellow-400 border-yellow-400/30'
                 )}
                 onClick={(e) => {
                   e.stopPropagation()
-                  onToggleFeatured(!job.isFeatured)
+                  onToggleFeatured(!job.featured)
                 }}
               >
-                <Star className={cn('w-4 h-4', job.isFeatured && 'fill-yellow-400')} />
+                <Star className={cn('w-4 h-4', job.featured && 'fill-yellow-400')} />
               </Button>
             )}
             {onDelete && (
@@ -163,17 +140,15 @@ export function JobCard({
                 <Trash2 className="w-4 h-4" />
               </Button>
             )}
-            {job.status === 'PUBLISHED' && (
-              <Button
-                size="sm"
-                variant="outline"
-                className="border-border ml-auto"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <ExternalLink className="w-4 h-4 mr-1" />
-                View
-              </Button>
-            )}
+            <Button
+              size="sm"
+              variant="outline"
+              className="border-border ml-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <ExternalLink className="w-4 h-4 mr-1" />
+              View
+            </Button>
           </div>
         </CardContent>
       </Card>

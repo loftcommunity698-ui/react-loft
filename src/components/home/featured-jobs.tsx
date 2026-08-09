@@ -1,37 +1,13 @@
-import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { MapPin, Briefcase, ArrowRight } from 'lucide-react'
-
-interface FeaturedJob {
-  id: number
-  title: string
-  slug: string
-  company: { companyName: string; companyLogo: string | null }
-  location: string
-  city: string
-  jobType: string
-  workMode: string
-  salaryMin: number | null
-  salaryMax: number | null
-  skills: string[]
-}
+import { useJobs } from '@/lib/api-hooks'
+import { formatSalary } from '@/lib/mappers'
 
 export function FeaturedJobs() {
-  const [jobs, setJobs] = useState<FeaturedJob[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    fetch('/api/jobs?limit=6&featured=true')
-      .then(r => r.json())
-      .then(data => {
-        setJobs(data.jobs || data || [])
-        setLoading(false)
-      })
-      .catch(() => setLoading(false))
-  }, [])
+  const { jobs, loading } = useJobs({ featured: 'true', take: '6' })
 
   if (loading) return null
 
@@ -44,39 +20,40 @@ export function FeaturedJobs() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {jobs.map((job) => (
-            <Link key={job.id} to={`/jobs/${job.slug}`}>
+            <Link key={job.id} to={`/jobs/${job.id}`}>
               <Card className="bg-card border hover:border-emerald-500/50 transition-colors h-full">
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center overflow-hidden">
-                        {job.company?.companyLogo ? (
-                          <img src={job.company.companyLogo} alt={job.company.companyName} className="w-full h-full object-cover" />
+                        {job.companyLogo ? (
+                          <img src={job.companyLogo} alt={job.company} className="w-full h-full object-cover" />
                         ) : (
-                          <span className="text-emerald-400 font-bold text-sm">{job.company?.companyName?.charAt(0) || 'C'}</span>
+                          <span className="text-emerald-400 font-bold text-sm">{job.company?.charAt(0) || 'C'}</span>
                         )}
                       </div>
                       <div>
                         <h3 className="font-semibold text-foreground">{job.title}</h3>
-                        <p className="text-sm text-muted-foreground">{job.company?.companyName}</p>
+                        <p className="text-sm text-muted-foreground">{job.company}</p>
                       </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
                     <MapPin className="w-3 h-3" />
-                    <span>{job.city || job.location || 'Remote'}</span>
+                    <span>{job.location}</span>
                     <span>•</span>
                     <Briefcase className="w-3 h-3" />
-                    <span>{job.jobType?.replace('_', ' ')}</span>
+                    <span>{job.category}</span>
+                    {job.remote && <span className="text-emerald-400">• Remote</span>}
                   </div>
                   <div className="flex flex-wrap gap-1.5 mb-4">
-                    {(job.skills || []).slice(0, 3).map((skill, i) => (
-                      <Badge key={i} variant="secondary" className="bg-emerald-500/10 text-emerald-400 text-xs">{skill}</Badge>
+                    {(job.tags || []).slice(0, 3).map((tag, i) => (
+                      <Badge key={i} variant="secondary" className="bg-emerald-500/10 text-emerald-400 text-xs">{tag}</Badge>
                     ))}
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-semibold text-emerald-400">
-                      {job.salaryMin && job.salaryMax ? `$${job.salaryMin.toLocaleString()} - $${job.salaryMax.toLocaleString()}` : job.salaryMin ? `From $${job.salaryMin.toLocaleString()}` : 'Salary not specified'}
+                      {formatSalary(job.salaryMin, job.salaryMax, job.currency) || 'Salary not specified'}
                     </span>
                     <Button variant="ghost" size="sm" className="text-emerald-400">
                       Apply <ArrowRight className="w-3 h-3 ml-1" />

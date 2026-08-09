@@ -17,33 +17,38 @@ export interface ApplicationSummary {
 }
 
 export interface JobSummary {
-  id: number
+  id: string
   title: string
-  slug: string
   company: string | null
   companyLogo: string | null
   location: string
-  workMode: string
-  jobType: string
+  remote: boolean
   salaryMin: number | null
   salaryMax: number | null
-  skills: string[]
-  publishedAt: string
+  currency: string
+  tags: string[]
+  category: string
+  seniority: string
+  postedDate: string
 }
 
 export interface SavedJobItem {
-  id: number
-  jobId: number
+  id: string
+  jobId: string
   savedAt: string
   job: {
-    id: number
+    id: string
     title: string
-    slug: string
+    company: string
+    companyLogo: string | null
     location: string
-    city: string
-    remoteWork: boolean
-    jobType: string
-    company: { companyName: string; companyLogo: string | null } | null
+    remote: boolean
+    category: string
+    seniority: string
+    salaryMin: number | null
+    salaryMax: number | null
+    currency: string
+    tags: string[]
   }
 }
 
@@ -107,29 +112,31 @@ export function useDashboardData() {
         if (typeof profile.emailVerified === 'boolean') setEmailVerified(profile.emailVerified)
         setProfileData(profile)
       }
-      const jobsData = jobsRes.ok ? await jobsRes.json() : { jobs: [] }
+      const jobsData = jobsRes.ok ? await jobsRes.json() : { data: [] }
       const savedJobsData: SavedJobItem[] = savedJobsRes.ok ? await savedJobsRes.json() : []
       const apps: ApplicationSummary[] = (Array.isArray(applications) ? applications : []).map((app: any) => ({
         id: app.id,
         jobTitle: app.job?.title || 'Unknown',
-        company: app.job?.company?.companyName || 'Unknown',
+        company: app.job?.company || 'Unknown',
         status: app.status?.toLowerCase() || 'pending',
         appliedAt: app.appliedAt ? new Date(app.appliedAt).toLocaleDateString() : 'Unknown',
       }))
       const interviewApps = apps.filter(a => a.status === 'interview')
-      const currentJobs: JobSummary[] = (jobsData.jobs || []).map((job: any) => ({
+      const rawJobs = jobsData.data ?? jobsData.jobs ?? []
+      const currentJobs: JobSummary[] = (Array.isArray(rawJobs) ? rawJobs : []).map((job: any) => ({
         id: job.id,
         title: job.title,
-        slug: job.slug || job.id,
-        company: job.company?.companyName || null,
-        companyLogo: job.company?.companyLogo || null,
-        location: job.location || job.city || '',
-        workMode: job.workMode || '',
-        jobType: job.jobType || '',
+        company: job.company?.companyName ?? job.company ?? null,
+        companyLogo: job.company?.companyLogo ?? job.companyLogo ?? null,
+        location: job.location || '',
+        remote: !!job.remote,
         salaryMin: job.salaryMin,
         salaryMax: job.salaryMax,
-        skills: job.skills || [],
-        publishedAt: job.publishedAt || '',
+        currency: job.currency || 'USD',
+        tags: job.tags || [],
+        category: job.category || '',
+        seniority: job.seniority || '',
+        postedDate: job.postedDate || job.createdAt || '',
       }))
       setData({
         stats: {

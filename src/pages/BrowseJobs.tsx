@@ -33,7 +33,7 @@ export default function BrowseJobs() {
   const [seniority, setSeniority] = useState(searchParams.get('seniority') || '')
   const [remote, setRemote] = useState(searchParams.get('remote') === 'true')
   const [sort, setSort] = useState(searchParams.get('sort') || 'recent')
-  const [displayCount, setDisplayCount] = useState(12)
+  const [showAllTake, setShowAllTake] = useState<string | null>(null)
 
   const updateParam = (key: string, value: string) => {
     const next = new URLSearchParams(searchParams)
@@ -48,11 +48,11 @@ export default function BrowseJobs() {
   if (category) params.category = category
   if (seniority) params.seniority = seniority
   if (remote) params.remote = 'true'
+  if (showAllTake) params.take = showAllTake
 
   const { jobs, loading, error, total } = useJobs(params)
 
-  const visible = jobs.slice(0, displayCount)
-  const hasMore = total > displayCount
+  const hasMore = total > jobs.length
 
   const clearFilters = () => {
     setSearch('')
@@ -61,7 +61,7 @@ export default function BrowseJobs() {
     setSeniority('')
     setRemote(false)
     setSort('recent')
-    setDisplayCount(12)
+    setShowAllTake(null)
     setSearchParams({}, { replace: true })
   }
 
@@ -172,7 +172,7 @@ export default function BrowseJobs() {
           ) : (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 max-w-6xl mx-auto">
-                {visible.map((job, i) => (
+                {jobs.map((job, i) => (
                   <motion.div
                     key={job.id}
                     initial={reduced ? { opacity: 1 } : { opacity: 0, y: 20 }}
@@ -238,7 +238,7 @@ export default function BrowseJobs() {
                 <div className="flex justify-center mt-10">
                   <Button
                     variant="outline"
-                    onClick={() => setDisplayCount(total)}
+                    onClick={() => setShowAllTake(String(total))}
                     className="border-white/10 text-white gap-2 px-8"
                   >
                     <ChevronDown className="h-4 w-4" />

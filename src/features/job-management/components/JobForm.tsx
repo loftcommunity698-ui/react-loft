@@ -6,22 +6,18 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
-import { CreateJobPayload, JobWithRelations, JOB_TYPE_LABELS, EXPERIENCE_LEVEL_LABELS, WORK_MODE_LABELS } from '../types'
+import { CreateJobPayload, CATEGORY_LABELS, SENIORITY_LABELS } from '../types'
 import { cn } from '@/lib/utils'
 import { Save } from 'lucide-react'
-import api from '@/lib/api'
+import { searchTags as searchTagsRaw } from '@/lib/api'
 
 interface JobFormProps {
-  initialData?: JobWithRelations
+  initialData?: CreateJobPayload
   onSubmit: (data: CreateJobPayload) => Promise<void>
   onCancel: () => void
   loading?: boolean
   className?: string
 }
-
-const jobTypes = Object.keys(JOB_TYPE_LABELS)
-const experienceLevels = Object.keys(EXPERIENCE_LEVEL_LABELS)
-const workModes = Object.keys(WORK_MODE_LABELS)
 
 export function JobForm({
   initialData,
@@ -32,48 +28,45 @@ export function JobForm({
 }: JobFormProps) {
   const [formData, setFormData] = useState<CreateJobPayload>({
     title: initialData?.title || '',
+    company: initialData?.company || '',
+    companyLogo: initialData?.companyLogo || '',
     description: initialData?.description || '',
-    requirements: initialData?.requirements || '',
-    benefits: initialData?.benefits || '',
-    jobType: initialData?.jobType || 'FULL_TIME',
-    experienceLevel: initialData?.experienceLevel || 'MID',
-    workMode: initialData?.workMode || 'REMOTE',
+    requirements: initialData?.requirements || [],
+    responsibilities: initialData?.responsibilities || [],
+    category: initialData?.category || '',
+    seniority: initialData?.seniority || '',
     location: initialData?.location || '',
-    city: initialData?.city || '',
-    country: initialData?.country || '',
-    remoteWork: initialData?.remoteWork || false,
-    salaryMin: initialData?.salaryMin,
-    salaryMax: initialData?.salaryMax,
-    salaryCurrency: initialData?.salaryCurrency || 'USD',
-    salaryPeriod: initialData?.salaryPeriod || 'YEARLY',
-    isSalaryVisible: initialData?.isSalaryVisible ?? true,
-    requiredSkills: initialData?.requiredSkills || [],
-    preferredSkills: initialData?.preferredSkills || [],
-    applicationUrl: initialData?.applicationUrl || '',
-    applicationEmail: initialData?.applicationEmail || '',
-    deadline: initialData?.deadline,
+    remote: initialData?.remote || false,
+    salaryMin: initialData?.salaryMin ?? undefined,
+    salaryMax: initialData?.salaryMax ?? undefined,
+    currency: initialData?.currency || 'USD',
+    tags: initialData?.tags || [],
+    featured: initialData?.featured || false,
   })
-
-  const searchSkills = async (value: string): Promise<Option[]> => {
-    if (!value) return []
-    try {
-      const { data } = await api.get(`/skills/search`, { params: { q: value } })
-      return data.map((s: { id: number; name: string }) => ({ value: s.name, label: s.name }))
-    } catch {
-      return []
-    }
-  }
+  const [requirementsText, setRequirementsText] = useState(initialData?.requirements?.join('\n') || '')
+  const [responsibilitiesText, setResponsibilitiesText] = useState(initialData?.responsibilities?.join('\n') || '')
 
   const handleChange = (field: keyof CreateJobPayload, value: unknown) => {
     setFormData(prev => ({ ...prev, [field]: value }))
   }
 
-  const toOptions = (skills: string[]): Option[] =>
-    skills.map(s => ({ value: s, label: s }))
+  const searchTags = async (query: string): Promise<Option[]> => {
+    if (!query) return []
+    const tags = await searchTagsRaw(query)
+    return tags.map(tag => ({ value: tag.name, label: tag.name }))
+  }
+
+  const toOptions = (tags: string[]): Option[] =>
+    tags.map(t => ({ value: t, label: t }))
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    await onSubmit(formData)
+    await onSubmit({
+      ...formData,
+      requirements: requirementsText.split('\n').map(s => s.trim()).filter(Boolean),
+      responsibilities: responsibilitiesText.split('\n').map(s => s.trim()).filter(Boolean),
+      tags: formData.tags || [],
+    })
   }
 
   return (
@@ -99,6 +92,30 @@ export function JobForm({
               />
             </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="company" className="text-foreground/80">Company *</Label>
+                <Input
+                  id="company"
+                  value={formData.company}
+                  onChange={(e) => handleChange('company', e.target.value)}
+                  placeholder="e.g., Acme Inc."
+                  className="bg-muted border-border text-foreground mt-1"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="companyLogo" className="text-foreground/80">Company Logo URL</Label>
+                <Input
+                  id="companyLogo"
+                  value={formData.companyLogo || ''}
+                  onChange={(e) => handleChange('companyLogo', e.target.value)}
+                  placeholder="https://..."
+                  className="bg-muted border-border text-foreground mt-1"
+                />
+              </div>
+            </div>
+
             <div>
               <Label htmlFor="description" className="text-foreground/80">Job Description *</Label>
               <Textarea
@@ -110,29 +127,6 @@ export function JobForm({
                 required
               />
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="requirements" className="text-foreground/80">Requirements</Label>
-                <Textarea
-                  id="requirements"
-                  value={formData.requirements}
-                  onChange={(e) => handleChange('requirements', e.target.value)}
-                  placeholder="List the job requirements..."
-                  className="bg-muted border-border text-foreground mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="benefits" className="text-foreground/80">Benefits</Label>
-                <Textarea
-                  id="benefits"
-                  value={formData.benefits}
-                  onChange={(e) => handleChange('benefits', e.target.value)}
-                  placeholder="List the benefits and perks..."
-                  className="bg-muted border-border text-foreground mt-1"
-                />
-              </div>
-            </div>
           </CardContent>
         </Card>
 
@@ -140,109 +134,65 @@ export function JobForm({
           <CardHeader>
             <CardTitle className="text-foreground">Job Details</CardTitle>
             <CardDescription className="text-muted-foreground">
-              Specify the type, level, and work mode
+              Specify the category, seniority, and work setup
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label className="text-foreground/80">Job Type *</Label>
+                <Label className="text-foreground/80">Category *</Label>
                 <select
-                  value={formData.jobType}
-                  onChange={(e) => handleChange('jobType', e.target.value)}
+                  value={formData.category}
+                  onChange={(e) => handleChange('category', e.target.value)}
                   className="w-full bg-muted border border-border rounded-md px-3 py-2 text-foreground mt-1"
                   required
                 >
-                  {jobTypes.map(type => (
-                    <option key={type} value={type}>
-                      {JOB_TYPE_LABELS[type]}
+                  <option value="" disabled>Select a category</option>
+                  {CATEGORY_LABELS.map(category => (
+                    <option key={category} value={category}>
+                      {category}
                     </option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <Label className="text-foreground/80">Experience Level *</Label>
+                <Label className="text-foreground/80">Seniority *</Label>
                 <select
-                  value={formData.experienceLevel}
-                  onChange={(e) => handleChange('experienceLevel', e.target.value)}
+                  value={formData.seniority}
+                  onChange={(e) => handleChange('seniority', e.target.value)}
                   className="w-full bg-muted border border-border rounded-md px-3 py-2 text-foreground mt-1"
                   required
                 >
-                  {experienceLevels.map(level => (
-                    <option key={level} value={level}>
-                      {EXPERIENCE_LEVEL_LABELS[level]}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <Label className="text-foreground/80">Work Mode *</Label>
-                <select
-                  value={formData.workMode}
-                  onChange={(e) => handleChange('workMode', e.target.value)}
-                  className="w-full bg-muted border border-border rounded-md px-3 py-2 text-foreground mt-1"
-                  required
-                >
-                  {workModes.map(mode => (
-                    <option key={mode} value={mode}>
-                      {WORK_MODE_LABELS[mode]}
+                  <option value="" disabled>Select a seniority</option>
+                  {Object.entries(SENIORITY_LABELS).map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
                     </option>
                   ))}
                 </select>
               </div>
             </div>
 
-            <div className="mt-4 flex items-center gap-2">
-              <Switch
-                id="remoteWork"
-                checked={formData.remoteWork}
-                onCheckedChange={(checked) => handleChange('remoteWork', checked)}
-              />
-              <Label htmlFor="remoteWork" className="text-foreground/80">Remote position</Label>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-card/50 border-border mb-6">
-          <CardHeader>
-            <CardTitle className="text-foreground">Location</CardTitle>
-            <CardDescription className="text-muted-foreground">
-              Where will the employee be working?
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="city" className="text-foreground/80">City</Label>
-                <Input
-                  id="city"
-                  value={formData.city}
-                  onChange={(e) => handleChange('city', e.target.value)}
-                  placeholder="e.g., San Francisco"
-                  className="bg-muted border-border text-foreground mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="country" className="text-foreground/80">Country</Label>
-                <Input
-                  id="country"
-                  value={formData.country}
-                  onChange={(e) => handleChange('country', e.target.value)}
-                  placeholder="e.g., USA"
-                  className="bg-muted border-border text-foreground mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="location" className="text-foreground/80">Address</Label>
+                <Label htmlFor="location" className="text-foreground/80">Location *</Label>
                 <Input
                   id="location"
                   value={formData.location}
                   onChange={(e) => handleChange('location', e.target.value)}
-                  placeholder="Full address"
+                  placeholder="e.g., San Francisco, CA"
                   className="bg-muted border-border text-foreground mt-1"
+                  required
                 />
+              </div>
+              <div className="flex items-end gap-2">
+                <Switch
+                  id="remote"
+                  checked={formData.remote || false}
+                  onCheckedChange={(checked) => handleChange('remote', checked)}
+                />
+                <Label htmlFor="remote" className="text-foreground/80">Remote position</Label>
               </div>
             </div>
           </CardContent>
@@ -256,150 +206,115 @@ export function JobForm({
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center gap-2 mb-4">
-              <Switch
-                id="isSalaryVisible"
-                checked={formData.isSalaryVisible}
-                onCheckedChange={(checked) => handleChange('isSalaryVisible', checked)}
-              />
-              <Label htmlFor="isSalaryVisible" className="text-foreground/80">Show salary on job posting</Label>
-            </div>
-
-            {formData.isSalaryVisible && (
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div>
-                  <Label htmlFor="salaryMin" className="text-foreground/80">Minimum</Label>
-                  <Input
-                    id="salaryMin"
-                    type="number"
-                    value={formData.salaryMin || ''}
-                    onChange={(e) => handleChange('salaryMin', e.target.value ? Number(e.target.value) : undefined)}
-                    placeholder="50000"
-                    className="bg-muted border-border text-foreground mt-1"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="salaryMax" className="text-foreground/80">Maximum</Label>
-                  <Input
-                    id="salaryMax"
-                    type="number"
-                    value={formData.salaryMax || ''}
-                    onChange={(e) => handleChange('salaryMax', e.target.value ? Number(e.target.value) : undefined)}
-                    placeholder="80000"
-                    className="bg-muted border-border text-foreground mt-1"
-                  />
-                </div>
-                <div>
-                  <Label className="text-foreground/80">Currency</Label>
-                  <select
-                    value={formData.salaryCurrency}
-                    onChange={(e) => handleChange('salaryCurrency', e.target.value)}
-                    className="w-full bg-muted border border-border rounded-md px-3 py-2 text-foreground mt-1"
-                  >
-                    <option value="USD">USD</option>
-                    <option value="EUR">EUR</option>
-                    <option value="GBP">GBP</option>
-                  </select>
-                </div>
-                <div>
-                  <Label className="text-foreground/80">Period</Label>
-                  <select
-                    value={formData.salaryPeriod}
-                    onChange={(e) => handleChange('salaryPeriod', e.target.value)}
-                    className="w-full bg-muted border border-border rounded-md px-3 py-2 text-foreground mt-1"
-                  >
-                    <option value="YEARLY">Yearly</option>
-                    <option value="MONTHLY">Monthly</option>
-                    <option value="WEEKLY">Weekly</option>
-                    <option value="HOURLY">Hourly</option>
-                  </select>
-                </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <Label htmlFor="salaryMin" className="text-foreground/80">Minimum</Label>
+                <Input
+                  id="salaryMin"
+                  type="number"
+                  value={formData.salaryMin ?? ''}
+                  onChange={(e) => handleChange('salaryMin', e.target.value ? Number(e.target.value) : undefined)}
+                  placeholder="50000"
+                  className="bg-muted border-border text-foreground mt-1"
+                />
               </div>
-            )}
+              <div>
+                <Label htmlFor="salaryMax" className="text-foreground/80">Maximum</Label>
+                <Input
+                  id="salaryMax"
+                  type="number"
+                  value={formData.salaryMax ?? ''}
+                  onChange={(e) => handleChange('salaryMax', e.target.value ? Number(e.target.value) : undefined)}
+                  placeholder="80000"
+                  className="bg-muted border-border text-foreground mt-1"
+                />
+              </div>
+              <div>
+                <Label className="text-foreground/80">Currency</Label>
+                <select
+                  value={formData.currency || 'USD'}
+                  onChange={(e) => handleChange('currency', e.target.value)}
+                  className="w-full bg-muted border border-border rounded-md px-3 py-2 text-foreground mt-1"
+                >
+                  <option value="USD">USD</option>
+                  <option value="EUR">EUR</option>
+                  <option value="GBP">GBP</option>
+                </select>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
         <Card className="bg-card/50 border-border mb-6">
           <CardHeader>
-            <CardTitle className="text-foreground">Skills</CardTitle>
+            <CardTitle className="text-foreground">Tags</CardTitle>
             <CardDescription className="text-muted-foreground">
-              Required and preferred skills for this position
+              Search or create tags for this position
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label className="text-foreground/80">Required Skills</Label>
-              <MultipleSelector
-                value={toOptions(formData.requiredSkills || [])}
-                onChange={(options) => handleChange('requiredSkills', options.map(o => o.value))}
-                onSearch={searchSkills}
-                placeholder="Search or type a skill..."
-                delay={200}
-                creatable
-                className="bg-muted border-border text-foreground mt-1"
-                badgeClassName="bg-emerald-500/20 text-emerald-400"
-                hidePlaceholderWhenSelected
-              />
-            </div>
-
-            <div>
-              <Label className="text-foreground/80">Preferred Skills</Label>
-              <MultipleSelector
-                value={toOptions(formData.preferredSkills || [])}
-                onChange={(options) => handleChange('preferredSkills', options.map(o => o.value))}
-                onSearch={searchSkills}
-                placeholder="Search or type a skill..."
-                delay={200}
-                creatable
-                className="bg-muted border-border text-foreground mt-1"
-                badgeClassName="bg-blue-500/20 text-blue-400"
-                hidePlaceholderWhenSelected
-              />
-            </div>
+          <CardContent>
+            <MultipleSelector
+              value={toOptions(formData.tags || [])}
+              onChange={(options) => handleChange('tags', options.map(o => o.value))}
+              onSearch={searchTags}
+              placeholder="Search or type a tag..."
+              delay={200}
+              creatable
+              className="bg-muted border-border text-foreground mt-1"
+              badgeClassName="bg-emerald-500/20 text-emerald-400"
+              hidePlaceholderWhenSelected
+            />
           </CardContent>
         </Card>
 
         <Card className="bg-card/50 border-border mb-6">
           <CardHeader>
-            <CardTitle className="text-foreground">Application</CardTitle>
+            <CardTitle className="text-foreground">Requirements & Responsibilities</CardTitle>
             <CardDescription className="text-muted-foreground">
-              How candidates should apply
+              One item per line
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="applicationUrl" className="text-foreground/80">Application URL</Label>
-                <Input
-                  id="applicationUrl"
-                  value={formData.applicationUrl}
-                  onChange={(e) => handleChange('applicationUrl', e.target.value)}
-                  placeholder="https://..."
-                  className="bg-muted border-border text-foreground mt-1"
+                <Label htmlFor="requirements" className="text-foreground/80">Requirements</Label>
+                <Textarea
+                  id="requirements"
+                  value={requirementsText}
+                  onChange={(e) => setRequirementsText(e.target.value)}
+                  placeholder={'e.g.,\n5+ years of experience\nBachelor\'s degree'}
+                  className="bg-muted border-border text-foreground mt-1 min-h-[120px]"
                 />
               </div>
               <div>
-                <Label htmlFor="applicationEmail" className="text-foreground/80">Application Email</Label>
-                <Input
-                  id="applicationEmail"
-                  type="email"
-                  value={formData.applicationEmail}
-                  onChange={(e) => handleChange('applicationEmail', e.target.value)}
-                  placeholder="jobs@company.com"
-                  className="bg-muted border-border text-foreground mt-1"
+                <Label htmlFor="responsibilities" className="text-foreground/80">Responsibilities</Label>
+                <Textarea
+                  id="responsibilities"
+                  value={responsibilitiesText}
+                  onChange={(e) => setResponsibilitiesText(e.target.value)}
+                  placeholder={'e.g.,\nBuild and ship features\nMentor junior engineers'}
+                  className="bg-muted border-border text-foreground mt-1 min-h-[120px]"
                 />
               </div>
             </div>
+          </CardContent>
+        </Card>
 
-            <div className="mt-4">
-              <Label htmlFor="deadline" className="text-foreground/80">Application Deadline</Label>
-              <Input
-                id="deadline"
-                type="date"
-                value={formData.deadline ? new Date(formData.deadline).toISOString().split('T')[0] : ''}
-                onChange={(e) => handleChange('deadline', e.target.value ? new Date(e.target.value) : undefined)}
-                className="bg-muted border-border text-foreground mt-1 w-auto"
+        <Card className="bg-card/50 border-border mb-6">
+          <CardHeader>
+            <CardTitle className="text-foreground">Listing</CardTitle>
+            <CardDescription className="text-muted-foreground">
+              Posting options
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              <Switch
+                id="featured"
+                checked={formData.featured || false}
+                onCheckedChange={(checked) => handleChange('featured', checked)}
               />
+              <Label htmlFor="featured" className="text-foreground/80">Featured job</Label>
             </div>
           </CardContent>
         </Card>

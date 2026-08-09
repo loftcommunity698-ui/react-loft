@@ -36,7 +36,7 @@ export default function EmployerDashboardPage() {
   }, [])
 
   const loading = jobsLoading || profileLoading
-  const totalApplicants = jobs.reduce((acc: number, j: any) => acc + (j.applicationsCount || 0), 0)
+  const totalApplicants = 0
 
   if (loading) {
     return (
@@ -202,17 +202,17 @@ export default function EmployerDashboardPage() {
                       <div className="flex justify-between items-start">
                         <div>
                           <h3 className="text-foreground font-semibold">{job.title}</h3>
-                          <p className="text-muted-foreground">{job.applicationsCount || 0} applicants</p>
+                          <p className="text-muted-foreground">{job.category}</p>
                         </div>
-                        <Badge variant={job.status === "PUBLISHED" ? "default" : "secondary"}>
-                          {job.status}
+                        <Badge variant={job.featured ? "default" : "secondary"}>
+                          {job.featured ? "Featured" : job.category}
                         </Badge>
                       </div>
                       <div className="flex gap-2 mt-4">
                         <Link to={`/employer/jobs/${job.id}/candidates`}>
                           <Button variant="outline" size="sm">View Candidates</Button>
                         </Link>
-                        <Link to={`/jobs/${job.slug || job.id}`}>
+                        <Link to={`/jobs/${job.id}`}>
                           <Button variant="ghost" size="sm">View Post</Button>
                         </Link>
                       </div>
@@ -241,7 +241,7 @@ export default function EmployerDashboardPage() {
                     <div className="flex items-center justify-between">
                       <div>
                         <h3 className="text-foreground font-semibold">{job.title}</h3>
-                        <p className="text-sm text-muted-foreground">{job.applicationsCount || 0} applicants</p>
+                        <p className="text-sm text-muted-foreground">{job.category}</p>
                       </div>
                       <Badge variant="outline" className="flex items-center gap-1">
                         View All <ArrowRight className="h-3 w-3" />

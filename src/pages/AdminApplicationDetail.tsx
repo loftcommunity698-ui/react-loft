@@ -176,27 +176,27 @@ export default function AdminApplicationDetail() {
               <CardContent className="space-y-3">
                 <p className="text-foreground font-medium">{application.job?.title}</p>
                 {application.job?.company && (
-                  <p className="text-sm text-muted-foreground">{application.job.company.companyName}</p>
+                  <p className="text-sm text-muted-foreground">{application.job.company}</p>
                 )}
                 {application.job?.location && (
                   <p className="text-sm text-muted-foreground">{application.job.location}</p>
                 )}
                 <div className="flex flex-wrap gap-1.5">
-                  {application.job?.jobType && (
-                    <Badge variant="outline" className="text-xs">{application.job.jobType}</Badge>
+                  {application.job?.remote && (
+                    <Badge variant="outline" className="text-xs">Remote</Badge>
                   )}
-                  {application.job?.workMode && (
-                    <Badge variant="outline" className="text-xs">{application.job.workMode}</Badge>
+                  {application.job?.category && (
+                    <Badge variant="outline" className="text-xs">{application.job.category}</Badge>
                   )}
-                  {application.job?.experienceLevel && (
-                    <Badge variant="outline" className="text-xs">{application.job.experienceLevel}</Badge>
+                  {application.job?.seniority && (
+                    <Badge variant="outline" className="text-xs">{application.job.seniority}</Badge>
                   )}
                 </div>
-                {application.job?.skills?.length > 0 && (
+                {application.job?.tags?.length > 0 && (
                   <div>
-                    <p className="text-xs text-muted-foreground mb-1 mt-3">Required Skills</p>
+                    <p className="text-xs text-muted-foreground mb-1 mt-3">Tags</p>
                     <div className="flex flex-wrap gap-1.5">
-                      {application.job.skills.map((s: string, i: number) => (
+                      {application.job.tags.map((s: string, i: number) => (
                         <Badge key={i} variant="outline" className="text-xs text-muted-foreground">{s}</Badge>
                       ))}
                     </div>

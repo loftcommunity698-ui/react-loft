@@ -107,7 +107,7 @@ export default function ApplicationDetail() {
                 </CardContent>
               </Card>
 
-              <Link to={`/jobs/${application.job?.slug}`}>
+              <Link to={`/jobs/${application.job?.id}`}>
                 <Button variant="outline" className="w-full border-white/10">
                   View Job Posting
                 </Button>

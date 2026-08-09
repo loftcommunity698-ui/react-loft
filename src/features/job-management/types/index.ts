@@ -1,172 +1,113 @@
-import type { ApplicationStatus } from '@/lib/types'
-
-export type JobStatus = 'DRAFT' | 'PUBLISHED' | 'CLOSED' | 'ARCHIVED'
-export type JobType = 'FULL_TIME' | 'PART_TIME' | 'CONTRACT' | 'INTERNSHIP' | 'TEMPORARY'
-export type ExperienceLevel = 'ENTRY' | 'JUNIOR' | 'MID' | 'SENIOR' | 'LEAD' | 'EXECUTIVE'
-export type WorkMode = 'ONSITE' | 'REMOTE' | 'HYBRID'
-export type SalaryPeriod = 'HOURLY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY'
+export type Seniority = 'junior' | 'mid' | 'senior' | 'lead' | 'executive' | 'expert'
 
 export interface CreateJobPayload {
   title: string
   description: string
-  requirements?: string
-  benefits?: string
-  jobType: JobType
-  experienceLevel: ExperienceLevel
-  workMode: WorkMode
-  location?: string
-  city?: string
-  country?: string
-  remoteWork?: boolean
+  company: string
+  companyLogo?: string
+  location: string
+  remote?: boolean
   salaryMin?: number
   salaryMax?: number
-  salaryCurrency?: string
-  salaryPeriod?: SalaryPeriod
-  isSalaryVisible?: boolean
-  requiredSkills?: string[]
-  preferredSkills?: string[]
-  applicationUrl?: string
-  applicationEmail?: string
-  deadline?: Date
-  categoryId?: number
+  currency?: string
+  tags?: string[]
+  category: string
+  seniority: string
+  requirements?: string[]
+  responsibilities?: string[]
+  featured?: boolean
 }
 
-export interface UpdateJobPayload extends Partial<CreateJobPayload> {
-  status?: JobStatus
-  isFeatured?: boolean
-  isActive?: boolean
-}
+export interface UpdateJobPayload extends Partial<CreateJobPayload> {}
 
 export interface JobWithRelations {
-  id: number
+  id: string
   title: string
-  slug: string
+  company: string
+  companyLogo: string | null
+  location: string
+  remote: boolean
+  salaryMin: number | null
+  salaryMax: number | null
+  currency: string
+  tags: string[]
+  category: string
+  seniority: string
   description: string
-  requirements?: string
-  benefits?: string
-  jobType: JobType
-  experienceLevel: ExperienceLevel
-  workMode: WorkMode
-  location?: string
-  city?: string
-  country?: string
-  remoteWork: boolean
-  salaryMin?: number
-  salaryMax?: number
-  salaryCurrency: string
-  salaryPeriod: SalaryPeriod
-  isSalaryVisible: boolean
-  requiredSkills: string[]
-  preferredSkills: string[]
-  status: JobStatus
-  isFeatured: boolean
-  isActive: boolean
-  applicationUrl?: string
-  applicationEmail?: string
-  deadline?: Date
-  viewsCount: number
-  applicationsCount: number
+  requirements: string[]
+  responsibilities: string[]
+  postedDate: string
+  expiresAt: string | null
+  featured: boolean
   employerId: string
-  categoryId?: number
-  createdAt: Date
-  updatedAt: Date
-  publishedAt?: Date
-  closedAt?: Date
-  applications?: JobApplicationSummary[]
-  category?: JobCategory
+  employer?: { email: string; firstName: string; lastName: string }
+  createdAt: string
+  updatedAt: string
 }
 
 export interface JobSummary {
-  id: number
+  id: string
   title: string
-  slug: string
-  jobType: JobType
-  experienceLevel: ExperienceLevel
-  workMode: WorkMode
-  location?: string
-  remoteWork: boolean
-  salaryMin?: number
-  salaryMax?: number
-  salaryCurrency: string
-  status: JobStatus
-  isFeatured: boolean
-  isActive: boolean
-  viewsCount: number
-  applicationsCount: number
-  createdAt: Date
-  publishedAt?: Date
-}
-
-export interface JobCategory {
-  id: number
-  name: string
-  slug: string
-  description?: string
-  icon?: string
-}
-
-export interface JobApplicationSummary {
-  id: number
-  userId: string
-  status: ApplicationStatus
-  appliedAt: Date
-  englishTestScore?: number
-  passedScreening?: boolean
+  company: string
+  companyLogo: string | null
+  location: string
+  remote: boolean
+  salaryMin: number | null
+  salaryMax: number | null
+  currency: string
+  tags: string[]
+  category: string
+  seniority: string
+  description: string
+  requirements: string[]
+  responsibilities: string[]
+  postedDate: string
+  expiresAt: string | null
+  featured: boolean
+  employerId: string
+  employer?: { email: string; firstName: string; lastName: string }
+  createdAt: string
+  updatedAt: string
 }
 
 export interface JobMetrics {
-  jobId: number
-  totalViews: number
+  jobId: string
   totalApplications: number
   pendingApplications: number
+  reviewingApplications: number
+  shortlistedApplications: number
   interviewingApplications: number
   offeredApplications: number
   hiredApplications: number
   rejectedApplications: number
-  averageTimeToReview: number
   conversionRate: number
-}
-
-export interface JobFormValues extends CreateJobPayload {
-  isSalaryVisible: boolean
-  remoteWork: boolean
-  isFeatured: boolean
+  avgMatchScore: number
+  totalCandidates: number
 }
 
 export interface JobFilters {
-  status?: JobStatus
-  jobType?: JobType
-  experienceLevel?: ExperienceLevel
-  workMode?: WorkMode
   search?: string
+  category?: string
+  seniority?: string
+  remote?: string
+  featured?: string
 }
 
-export const JOB_TYPE_LABELS: Record<string, string> = {
-  FULL_TIME: 'Full Time',
-  PART_TIME: 'Part Time',
-  CONTRACT: 'Contract',
-  INTERNSHIP: 'Internship',
-  TEMPORARY: 'Temporary',
-}
+export const CATEGORY_LABELS = [
+  'Engineering',
+  'Design',
+  'Marketing',
+  'Sales',
+  'Operations',
+  'Product',
+  'Support',
+]
 
-export const EXPERIENCE_LEVEL_LABELS: Record<string, string> = {
-  ENTRY: 'Entry Level',
-  JUNIOR: 'Junior',
-  MID: 'Mid-Level',
-  SENIOR: 'Senior',
-  LEAD: 'Lead',
-  EXECUTIVE: 'Executive',
-}
-
-export const WORK_MODE_LABELS: Record<string, string> = {
-  ONSITE: 'On-site',
-  REMOTE: 'Remote',
-  HYBRID: 'Hybrid',
-}
-
-export const JOB_STATUS_LABELS: Record<string, string> = {
-  DRAFT: 'Draft',
-  PUBLISHED: 'Published',
-  CLOSED: 'Closed',
-  ARCHIVED: 'Archived',
+export const SENIORITY_LABELS: Record<string, string> = {
+  junior: 'Junior',
+  mid: 'Mid-Level',
+  senior: 'Senior',
+  lead: 'Lead',
+  executive: 'Executive',
+  expert: 'Expert',
 }

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { JobSummary, JobStatus, JobType, WorkMode, ExperienceLevel, JOB_TYPE_LABELS, WORK_MODE_LABELS, EXPERIENCE_LEVEL_LABELS } from '../types'
+import { JobSummary, CATEGORY_LABELS, SENIORITY_LABELS } from '../types'
 import { JobCard } from './JobCard'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -21,22 +21,11 @@ interface JobListProps {
   onJobClick?: (job: JobSummary) => void
   onEditJob?: (job: JobSummary) => void
   onDeleteJob?: (job: JobSummary) => void
-  onToggleFeatured?: (jobId: number, isFeatured: boolean) => void
+  onToggleFeatured?: (jobId: string, isFeatured: boolean) => void
   onCreateJob?: () => void
   loading?: boolean
   className?: string
 }
-
-const statusFilters: { value: JobStatus | 'ALL'; label: string }[] = [
-  { value: 'ALL', label: 'All Jobs' },
-  { value: 'PUBLISHED', label: 'Published' },
-  { value: 'DRAFT', label: 'Draft' },
-  { value: 'CLOSED', label: 'Closed' },
-]
-
-const jobTypeFilters = ['', ...Object.keys(JOB_TYPE_LABELS)]
-const workModeFilters = ['', ...Object.keys(WORK_MODE_LABELS)]
-const experienceFilters = ['', ...Object.keys(EXPERIENCE_LEVEL_LABELS)]
 
 export function JobList({
   jobs,
@@ -49,10 +38,9 @@ export function JobList({
   className,
 }: JobListProps) {
   const [searchQuery, setSearchQuery] = useState('')
-  const [statusFilter, setStatusFilter] = useState<JobStatus | 'ALL'>('ALL')
-  const [typeFilter, setTypeFilter] = useState<JobType | ''>('')
-  const [workModeFilter, setWorkModeFilter] = useState<WorkMode | ''>('')
-  const [experienceFilter, setExperienceFilter] = useState<ExperienceLevel | ''>('')
+  const [categoryFilter, setCategoryFilter] = useState('')
+  const [seniorityFilter, setSeniorityFilter] = useState('')
+  const [remoteFilter, setRemoteFilter] = useState<'' | 'remote' | 'onsite'>('')
   const [showFilters, setShowFilters] = useState(false)
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
 
@@ -60,28 +48,24 @@ export function JobList({
     const matchesSearch = !searchQuery ||
       job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       job.location?.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesStatus = statusFilter === 'ALL' || job.status === statusFilter
-    const matchesType = !typeFilter || job.jobType === typeFilter
-    const matchesWorkMode = !workModeFilter || job.workMode === workModeFilter
-    const matchesExperience = !experienceFilter || job.experienceLevel === experienceFilter
+    const matchesCategory = !categoryFilter || job.category === categoryFilter
+    const matchesSeniority = !seniorityFilter || job.seniority === seniorityFilter
+    const matchesRemote =
+      remoteFilter === '' ||
+      (remoteFilter === 'remote' && job.remote) ||
+      (remoteFilter === 'onsite' && !job.remote)
 
-    return matchesSearch && matchesStatus && matchesType && matchesWorkMode && matchesExperience
+    return matchesSearch && matchesCategory && matchesSeniority && matchesRemote
   })
-
-  const statusCounts = jobs.reduce((acc, job) => {
-    acc[job.status] = (acc[job.status] || 0) + 1
-    return acc
-  }, {} as Record<string, number>)
 
   const clearFilters = () => {
     setSearchQuery('')
-    setStatusFilter('ALL')
-    setTypeFilter('')
-    setWorkModeFilter('')
-    setExperienceFilter('')
+    setCategoryFilter('')
+    setSeniorityFilter('')
+    setRemoteFilter('')
   }
 
-  const hasActiveFilters = searchQuery || statusFilter !== 'ALL' || typeFilter || workModeFilter || experienceFilter
+  const hasActiveFilters = searchQuery || categoryFilter || seniorityFilter || remoteFilter
 
   return (
     <div className={cn('space-y-4', className)}>
@@ -148,77 +132,49 @@ export function JobList({
 
       {showFilters && (
         <div className="flex flex-col gap-4 p-4 bg-muted/50 rounded-lg">
-          <div>
-            <label className="text-sm text-muted-foreground mb-2 block">Status</label>
-            <div className="flex flex-wrap gap-2">
-              {statusFilters.map(filter => (
-                <Button
-                  key={filter.value}
-                  variant={statusFilter === filter.value ? 'default' : 'outline'}
-                  size="sm"
-                  className={statusFilter === filter.value
-                    ? 'bg-emerald-600 hover:bg-emerald-700'
-                    : 'border-border text-muted-foreground'
-                  }
-                  onClick={() => setStatusFilter(filter.value)}
-                >
-                  {filter.label}
-                  {filter.value !== 'ALL' && statusCounts[filter.value] !== undefined && (
-                    <Badge variant="secondary" className="ml-1 bg-muted">
-                      {statusCounts[filter.value]}
-                    </Badge>
-                  )}
-                </Button>
-              ))}
-            </div>
-          </div>
-
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="text-sm text-muted-foreground mb-2 block">Job Type</label>
+              <label className="text-sm text-muted-foreground mb-2 block">Category</label>
               <select
-                value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value as JobType | '')}
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
                 className="w-full bg-muted border border-border rounded-md px-3 py-2 text-foreground"
               >
-                <option value="">All Types</option>
-                {jobTypeFilters.filter(Boolean).map(type => (
-                  <option key={type} value={type}>
-                    {JOB_TYPE_LABELS[type] || type}
+                <option value="">All Categories</option>
+                {CATEGORY_LABELS.map(category => (
+                  <option key={category} value={category}>
+                    {category}
                   </option>
                 ))}
               </select>
             </div>
 
             <div>
-              <label className="text-sm text-muted-foreground mb-2 block">Work Mode</label>
+              <label className="text-sm text-muted-foreground mb-2 block">Seniority</label>
               <select
-                value={workModeFilter}
-                onChange={(e) => setWorkModeFilter(e.target.value as WorkMode | '')}
-                className="w-full bg-muted border border-border rounded-md px-3 py-2 text-foreground"
-              >
-                <option value="">All Modes</option>
-                {workModeFilters.filter(Boolean).map(mode => (
-                  <option key={mode} value={mode}>
-                    {WORK_MODE_LABELS[mode] || mode}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="text-sm text-muted-foreground mb-2 block">Experience</label>
-              <select
-                value={experienceFilter}
-                onChange={(e) => setExperienceFilter(e.target.value as ExperienceLevel | '')}
+                value={seniorityFilter}
+                onChange={(e) => setSeniorityFilter(e.target.value)}
                 className="w-full bg-muted border border-border rounded-md px-3 py-2 text-foreground"
               >
                 <option value="">All Levels</option>
-                {experienceFilters.filter(Boolean).map(level => (
-                  <option key={level} value={level}>
-                    {EXPERIENCE_LEVEL_LABELS[level] || level}
+                {Object.entries(SENIORITY_LABELS).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
                   </option>
                 ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="text-sm text-muted-foreground mb-2 block">Setup</label>
+              <select
+                value={remoteFilter}
+                onChange={(e) => setRemoteFilter(e.target.value as '' | 'remote' | 'onsite')}
+                className="w-full bg-muted border border-border rounded-md px-3 py-2 text-foreground"
+              >
+                <option value="">All Setups</option>
+                <option value="remote">Remote</option>
+                <option value="onsite">On-site</option>
               </select>
             </div>
           </div>
