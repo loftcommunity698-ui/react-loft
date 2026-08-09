@@ -10,8 +10,6 @@ import type {
   JobMetrics,
   Candidate,
   ContactFormInput,
-  Skill,
-  RemoteJobsResponse,
   ProfileData,
   Interview,
   InterviewType,
@@ -106,8 +104,8 @@ export async function getCompanyJobs(email?: string): Promise<any[]> {
 
 // ─── Jobs ────────────────────────────────────────────────────────────────────
 
-export async function applyToJob(slug: string, body: { coverLetter?: string; resumeUrl?: string }): Promise<any> {
-  const { data } = await api.post(`/jobs/${slug}/apply`, body)
+export async function applyToJob(id: string, body: { coverLetter?: string; resumeUrl?: string }): Promise<any> {
+  const { data } = await api.post(`/jobs/${id}/apply`, body)
   return data
 }
 
@@ -127,26 +125,43 @@ export async function getAdminApplication(id: number | string): Promise<any> {
   return data
 }
 
-export async function getJobCandidates(slug: string, sort?: string): Promise<{ job: any; candidates: Candidate[]; total: number }> {
+export async function getJobCandidates(id: string, sort?: string): Promise<{ job: any; candidates: Candidate[]; total: number }> {
   const params: Record<string, string> = {}
   if (sort) params.sort = sort
-  const { data } = await api.get(`/jobs/${slug}/candidates`, { params })
+  const { data } = await api.get(`/jobs/${id}/candidates`, { params })
   return data
 }
 
-export async function getJobMetrics(slug: string): Promise<JobMetrics> {
-  const { data } = await api.get(`/jobs/${slug}/metrics`)
+export async function getJobMetrics(id: string): Promise<JobMetrics> {
+  const { data } = await api.get(`/jobs/${id}/metrics`)
   return data
 }
 
-export async function reportJob(slug: string, reason: string): Promise<{ success: boolean; message: string }> {
-  const { data } = await api.post(`/jobs/${slug}/report`, { reason })
+export interface JobListParams {
+  search?: string
+  location?: string
+  category?: string
+  seniority?: string
+  remote?: string
+  sort?: string
+  take?: string
+  cursor?: string
+}
+
+export interface PaginatedJobsResponse<T> {
+  success: boolean
+  data: T[]
+  pagination: { total: number; cursor: string | null }
+}
+
+export async function getJobs(params?: JobListParams): Promise<PaginatedJobsResponse<any>> {
+  const { data } = await api.get('/jobs', { params })
   return data
 }
 
-export async function getRemoteJobs(params?: { count?: number; geo?: string; industry?: string; tag?: string }): Promise<RemoteJobsResponse> {
-  const { data } = await api.get('/jobs/remote', { params })
-  return data
+export async function searchTags(query: string): Promise<{ name: string; count: number }[]> {
+  const { data } = await api.get('/jobs/tags/search', { params: { q: query } })
+  return data.data
 }
 
 // ─── Applications ────────────────────────────────────────────────────────────
@@ -204,13 +219,13 @@ export async function fetchSavedJobs(email?: string): Promise<SavedJob[]> {
   return data
 }
 
-export async function saveJob(jobId: number, email?: string): Promise<void> {
+export async function saveJob(jobId: string, email?: string): Promise<void> {
   const params = email ? { email } : {}
   await api.post('/users/saved-jobs', { jobId }, { params })
 }
 
-export async function unsaveJob(jobId: number, email?: string): Promise<void> {
-  const params: Record<string, string> = { jobId: String(jobId) }
+export async function unsaveJob(jobId: string, email?: string): Promise<void> {
+  const params: Record<string, string> = { jobId }
   if (email) params.email = email
   await api.delete('/users/saved-jobs', { params })
 }
@@ -255,13 +270,6 @@ export async function sendMessage(body: { email?: string; receiverId: string; co
 
 export async function submitContactForm(input: ContactFormInput): Promise<{ success: boolean; message: string }> {
   const { data } = await api.post('/contact', input)
-  return data
-}
-
-// ─── Skills ──────────────────────────────────────────────────────────────────
-
-export async function searchSkills(query: string): Promise<Skill[]> {
-  const { data } = await api.get('/skills/search', { params: { q: query } })
   return data
 }
 

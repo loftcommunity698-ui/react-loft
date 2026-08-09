@@ -15,7 +15,7 @@ import api, {
   getNotificationPrefs,
   updateNotificationPrefs,
   submitContactForm,
-  searchSkills,
+  searchTags,
   getAdminApplications,
   getAdminApplication,
 } from './api'
@@ -23,9 +23,9 @@ import { USE_JSON_DATA } from './config'
 import {
   getJobsFromJson,
   getJobFromJson,
-  searchSkillsFromJson,
+  searchTagsFromJson,
 } from './json-service'
-import type { Job, Application, Message, Conversation, SavedJob, CompanyProfile, Notification, NotificationPrefs, JobMetrics, Candidate, Skill } from './types'
+import type { Job, Application, Message, Conversation, SavedJob, CompanyProfile, Notification, NotificationPrefs, JobMetrics, Candidate } from './types'
 import { normalizeJob } from './mappers'
 import { toast } from 'sonner'
 
@@ -34,18 +34,16 @@ export function useJobs(params?: Record<string, string>) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [total, setTotal] = useState(0)
-  const [page, setPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
+  const [cursor, setCursor] = useState<string | null>(null)
 
   useEffect(() => {
     setLoading(true)
     if (USE_JSON_DATA) {
       getJobsFromJson(params)
         .then((data) => {
-          setJobs(data.jobs)
-          setTotal(data.total)
-          setPage(data.page)
-          setTotalPages(data.totalPages)
+          setJobs(data.data)
+          setTotal(data.pagination.total)
+          setCursor(data.pagination.cursor)
         })
         .catch((err) => setError(err.message))
         .finally(() => setLoading(false))
@@ -53,44 +51,42 @@ export function useJobs(params?: Record<string, string>) {
       api.get('/jobs', { params })
         .then((res) => {
           const data = res.data
-          const rawJobs = data.jobs || data || []
+          const rawJobs = data.data || data.jobs || []
           setJobs(rawJobs.map(normalizeJob))
-          setTotal(data.total ?? rawJobs.length)
-          setPage(data.page ?? 1)
-          setTotalPages(data.totalPages ?? 1)
+          setTotal(data.pagination?.total ?? rawJobs.length)
+          setCursor(data.pagination?.cursor ?? null)
         })
         .catch((err) => setError(err.message))
         .finally(() => setLoading(false))
     }
   }, [JSON.stringify(params)])
 
-  return { jobs, loading, error, total, page, totalPages }
+  return { jobs, loading, error, total, cursor }
 }
 
-export function useFeaturedJobs() {
-  return useJobs({ featured: 'true', limit: '3' })
-}
-
-export function useJob(slug: string | undefined) {
+export function useJob(id: string | undefined) {
   const [job, setJob] = useState<Job | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!slug) return
+    if (!id) return
     setLoading(true)
     if (USE_JSON_DATA) {
-      getJobFromJson(slug)
+      getJobFromJson(id)
         .then(setJob)
         .catch((err) => setError(err.message))
         .finally(() => setLoading(false))
     } else {
-      api.get(`/jobs/${slug}`)
-        .then((res) => setJob(normalizeJob(res.data)))
+      api.get(`/jobs/${id}`)
+        .then((res) => {
+          const data = res.data
+          setJob(normalizeJob(data.data ?? data))
+        })
         .catch((err) => setError(err.message))
         .finally(() => setLoading(false))
     }
-  }, [slug])
+  }, [id])
 
   return { job, loading, error }
 }
@@ -342,10 +338,10 @@ export function useConversations(email?: string) {
 export function useApplyToJob() {
   const [applying, setApplying] = useState(false)
 
-  const apply = async (slug: string, data: { coverLetter?: string; resumeUrl?: string; email?: string }) => {
+  const apply = async (id: string, data: { coverLetter?: string; resumeUrl?: string; email?: string }) => {
     setApplying(true)
     try {
-      const res = await api.post(`/jobs/${slug}/apply`, data)
+      const res = await api.post(`/jobs/${id}/apply`, data)
       return res.data
     } finally {
       setApplying(false)
@@ -371,7 +367,7 @@ export function useSavedJobs(email?: string) {
       .finally(() => setLoading(false))
   }, [e])
 
-  const toggleSave = async (jobId: number) => {
+  const toggleSave = async (jobId: string) => {
     if (!e) return
     const existing = savedJobs.find(sj => sj.jobId === jobId)
     try {
@@ -388,7 +384,7 @@ export function useSavedJobs(email?: string) {
     }
   }
 
-  const isSaved = (jobId: number) => savedJobs.some(sj => sj.jobId === jobId)
+  const isSaved = (jobId: string) => savedJobs.some(sj => sj.jobId === jobId)
 
   return { savedJobs, loading, error, toggleSave, isSaved }
 }
@@ -500,17 +496,17 @@ export function useCompanyJobs(email?: string) {
 
 // ─── Candidates ───────────────────────────────────────────────────────────
 
-export function useCandidates(slug: string | undefined) {
+export function useCandidates(id: string | undefined) {
   const [candidates, setCandidates] = useState<Candidate[]>([])
   const [jobTitle, setJobTitle] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const fetch = useCallback(async () => {
-    if (!slug) { setLoading(false); return }
+    if (!id) { setLoading(false); return }
     setLoading(true)
     try {
-      const data = await getJobCandidates(slug)
+      const data = await getJobCandidates(id)
       setCandidates(data.candidates || [])
       setJobTitle(data.job?.title || '')
     } catch (err: any) {
@@ -518,7 +514,7 @@ export function useCandidates(slug: string | undefined) {
     } finally {
       setLoading(false)
     }
-  }, [slug])
+  }, [id])
 
   useEffect(() => { fetch() }, [fetch])
 
@@ -527,19 +523,19 @@ export function useCandidates(slug: string | undefined) {
 
 // ─── Job Metrics ──────────────────────────────────────────────────────────
 
-export function useJobMetrics(slug: string | undefined) {
+export function useJobMetrics(id: string | undefined) {
   const [metrics, setMetrics] = useState<JobMetrics | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!slug) { setLoading(false); return }
+    if (!id) { setLoading(false); return }
     setLoading(true);
-    getJobMetrics(slug)
+    getJobMetrics(id)
       .then(setMetrics)
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false))
-  }, [slug])
+  }, [id])
 
   return { metrics, loading, error }
 }
@@ -643,10 +639,10 @@ export function useContactForm() {
   return { submit, loading, sent, error }
 }
 
-// ─── Skills Search ────────────────────────────────────────────────────────
+// ─── Tags Search ───────────────────────────────────────────────────────────
 
-export function useSkillsSearch() {
-  const [results, setResults] = useState<Skill[]>([])
+export function useTagsSearch() {
+  const [results, setResults] = useState<{ name: string; count: number }[]>([])
   const [loading, setLoading] = useState(false)
   const [query, setQuery] = useState('')
 
@@ -654,7 +650,7 @@ export function useSkillsSearch() {
     if (!query || query.length < 1) { setResults([]); return }
     const timer = setTimeout(() => {
       setLoading(true)
-      const fetcher = USE_JSON_DATA ? searchSkillsFromJson(query) : searchSkills(query)
+      const fetcher = USE_JSON_DATA ? searchTagsFromJson(query) : searchTags(query)
       fetcher
         .then(setResults)
         .catch(() => setResults([]))
@@ -664,26 +660,4 @@ export function useSkillsSearch() {
   }, [query])
 
   return { results, loading, query, setQuery }
-}
-
-// ─── Remote Jobs ──────────────────────────────────────────────────────────
-
-export function useRemoteJobs(params?: { count?: number; geo?: string; industry?: string; tag?: string }) {
-  const [jobs, setJobs] = useState<any[]>([])
-  const [source, setSource] = useState<string>('none')
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    setLoading(true)
-    api.get('/jobs/remote', { params })
-      .then((res) => {
-        setJobs(res.data.jobs || [])
-        setSource(res.data.source || 'none')
-      })
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false))
-  }, [JSON.stringify(params)])
-
-  return { jobs, source, loading, error }
 }

@@ -13,43 +13,31 @@ export interface User {
   needsOnboarding?: boolean
 }
 
-export interface JobCompany {
-  companyName: string
-  companyLogo: string | null
-  city: string | null
-}
-
 export interface Job {
-  id: number
+  id: string
   title: string
-  slug: string
-  description: string
-  requirements: string | null
-  benefits: string | null
-  jobType: string
-  experienceLevel: string
-  workMode: string
+  company: string
+  companyLogo: string | null
   location: string
-  city: string | null
-  remoteWork: boolean
+  remote: boolean
   salaryMin: number | null
   salaryMax: number | null
-  salaryCurrency: string
-  applicationsCount: number
-  viewsCount: number
-  isFeatured: boolean
-  isActive: boolean
-  publishedAt: string | null
-  deadline: string | null
-  company: JobCompany | null
-  skills: string[]
-  status: string
+  currency: string
+  tags: string[]
+  category: string
+  seniority: string
+  description: string
+  requirements: string[]
+  responsibilities: string[]
+  postedDate: string
+  expiresAt: string | null
+  featured: boolean
   source: string
 }
 
 export interface Application {
   id: number
-  jobId: number
+  jobId: string
   userId: string
   status: string
   coverLetter: string | null
@@ -66,13 +54,15 @@ export interface Application {
   acceptedAt?: string | null
   interviews?: Interview[]
   job: {
-    id: number
+    id: string
     title: string
-    slug: string
+    company: string
+    companyLogo: string | null
     location: string
-    city: string
-    jobType: string
-    company: JobCompany
+    remote: boolean
+    category: string
+    seniority: string
+    tags: string[]
   }
   candidate?: {
     id: number
@@ -146,20 +136,21 @@ export interface RegisterInput {
 
 export interface SavedJob {
   id: string
-  jobId: number
+  jobId: string
   savedAt: string
   job: {
-    id: number
+    id: string
     title: string
-    slug: string
-    location: string | null
-    city: string | null
-    remoteWork: boolean | null
-    jobType: string
-    company: {
-      companyName: string | null
-      companyLogo: string | null
-    } | null
+    company: string
+    companyLogo: string | null
+    location: string
+    remote: boolean
+    category: string
+    seniority: string
+    salaryMin: number | null
+    salaryMax: number | null
+    currency: string
+    tags: string[]
   }
 }
 
@@ -326,35 +317,8 @@ export interface ContactFormInput {
   message: string
 }
 
-export interface Skill {
-  id: number
-  name: string
-}
-
 export interface JobReportInput {
   reason: string
-}
-
-export interface RemoteJob {
-  id: string
-  title: string
-  company: string
-  companyLogo?: string | null
-  description: string
-  url: string
-  locations: string[]
-  jobType: string
-  salary: string | null
-  category: string | null
-  publishedAt: string
-  source: string
-}
-
-export interface RemoteJobsResponse {
-  jobs: RemoteJob[]
-  source: 'cache' | 'live' | 'none'
-  cachedAt?: string
-  total: number
 }
 
 export interface ProfileData {

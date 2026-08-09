@@ -1,66 +1,22 @@
-const jobTypeDisplay: Record<string, string> = {
-  FULL_TIME: 'Full Time',
-  PART_TIME: 'Part Time',
-  CONTRACT: 'Contract',
-  INTERNSHIP: 'Internship',
-  TEMPORARY: 'Temporary',
-  FREELANCE: 'Freelance',
-}
-
-const jobTypeApi: Record<string, string> = {
-  'Full Time': 'FULL_TIME',
-  'Part Time': 'PART_TIME',
-  'Contract': 'CONTRACT',
-  'Internship': 'INTERNSHIP',
-  'Temporary': 'TEMPORARY',
-  'Freelance': 'FREELANCE',
-}
-
-const workModeDisplay: Record<string, string> = {
-  REMOTE: 'remote',
-  ONSITE: 'onsite',
-  HYBRID: 'hybrid',
-}
-
-const workModeApi: Record<string, string> = {
-  remote: 'REMOTE',
-  onsite: 'ONSITE',
-  hybrid: 'HYBRID',
-}
-
-const expDisplay: Record<string, string> = {
-  ENTRY: 'Entry',
-  JUNIOR: 'Junior',
-  MID: 'Mid',
-  SENIOR: 'Senior',
-  LEAD: 'Lead',
-  EXECUTIVE: 'Executive',
-}
-
-const expApi: Record<string, string> = {
-  Entry: 'ENTRY',
-  Junior: 'JUNIOR',
-  Mid: 'MID',
-  Senior: 'SENIOR',
-  Lead: 'LEAD',
-  Executive: 'EXECUTIVE',
-}
-
-export function displayJobType(v: string): string { return jobTypeDisplay[v] || v }
-export function apiJobType(v: string): string { return jobTypeApi[v] || v }
-export function displayWorkMode(v: string): string { return workModeDisplay[v] || v }
-export function apiWorkMode(v: string): string { return workModeApi[v] || v }
-export function displayExperience(v: string): string { return expDisplay[v] || v }
-export function apiExperience(v: string): string { return expApi[v] || v }
-
 export function normalizeJob(raw: any) {
   return {
     ...raw,
-    isFeatured: raw.isFeatured ?? raw.featured ?? false,
+    company: raw.company || '',
+    companyLogo: raw.companyLogo ?? null,
+    remote: raw.remote ?? false,
+    salaryMin: raw.salaryMin ?? null,
+    salaryMax: raw.salaryMax ?? null,
+    currency: raw.currency || 'USD',
+    tags: raw.tags || raw.skills || [],
+    category: raw.category || '',
+    seniority: raw.seniority || '',
+    requirements: Array.isArray(raw.requirements) ? raw.requirements : [],
+    responsibilities: Array.isArray(raw.responsibilities) ? raw.responsibilities : [],
+    postedDate: raw.postedDate ?? raw.publishedAt ?? '',
+    expiresAt: raw.expiresAt ?? null,
+    featured: raw.featured ?? raw.isFeatured ?? false,
+    isFeatured: raw.featured ?? raw.isFeatured ?? false,
     source: raw.source || 'local',
-    company: raw.company || raw.employer || null,
-    skills: raw.skills || raw.requiredSkills || [],
-    benefits: Array.isArray(raw.benefits) ? raw.benefits.join('\n') : (raw.benefits || null),
   }
 }
 
