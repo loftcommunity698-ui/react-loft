@@ -150,7 +150,7 @@ export async function getJobFromJson(id: string): Promise<Job | null> {
   if (cached !== null) return cached
 
   await randomDelay()
-  const job = (rawData.jobs || []).find(j => String(j.id) === id || j.slug === id) || null
+  const job = (rawData.jobs || []).find(j => String(j.id) === id) || null
   const result = job ? normalizeJob(job) : null
   toCache(cacheKey, result)
   return result
