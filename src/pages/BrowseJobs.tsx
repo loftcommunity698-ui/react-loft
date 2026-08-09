@@ -6,32 +6,64 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
+import { Switch } from '@/components/ui/switch'
 import PageShell from '@/components/layout/PageShell'
 import SaveJobButton from '@/components/sections/jobs/SaveJobButton'
 import JobListSkeleton from '@/components/skeletons/JobListSkeleton'
 import { useJobs } from '@/lib/api-hooks'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
-import { displayJobType, formatSalary, formatRelativeTime } from '@/lib/mappers'
+import { formatSalary, formatRelativeTime } from '@/lib/mappers'
+
+const CATEGORIES = ['Engineering', 'Design', 'Marketing', 'Sales', 'Operations', 'Product']
+const SENIORITIES = ['junior', 'mid', 'senior', 'lead', 'executive', 'expert']
+const SORT_OPTIONS = [
+  { value: 'recent', label: 'Most Recent' },
+  { value: 'relevance', label: 'Best Match' },
+  { value: 'salary_high', label: 'Highest Salary' },
+  { value: 'salary_low', label: 'Lowest Salary' },
+  { value: 'remote_first', label: 'Remote First' },
+]
 
 export default function BrowseJobs() {
   const reduced = useReducedMotion()
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [search, setSearch] = useState(searchParams.get('search') || '')
-  const [type, setType] = useState('')
+  const [location, setLocation] = useState(searchParams.get('location') || '')
+  const [category, setCategory] = useState(searchParams.get('category') || '')
+  const [seniority, setSeniority] = useState(searchParams.get('seniority') || '')
+  const [remote, setRemote] = useState(searchParams.get('remote') === 'true')
+  const [sort, setSort] = useState(searchParams.get('sort') || 'recent')
   const [displayCount, setDisplayCount] = useState(12)
-  const location = searchParams.get('location') || ''
-  const { jobs, loading, error } = useJobs({ search, location, jobType: type })
 
-  const filtered = jobs.filter((job) => {
-    const q = search.toLowerCase()
-    const matchSearch = !search || job.title.toLowerCase().includes(q) || (job.company?.companyName || '').toLowerCase().includes(q)
-    const matchLocation = !location || (job.location || '').toLowerCase().includes(location.toLowerCase())
-    const matchType = !type || job.jobType === type
-    return matchSearch && matchLocation && matchType
-  })
+  const updateParam = (key: string, value: string) => {
+    const next = new URLSearchParams(searchParams)
+    if (value) next.set(key, value)
+    else next.delete(key)
+    setSearchParams(next, { replace: true })
+  }
 
-  const visible = filtered.slice(0, displayCount)
-  const hasMore = filtered.length > displayCount
+  const params: Record<string, string> = { sort }
+  if (search) params.search = search
+  if (location) params.location = location
+  if (category) params.category = category
+  if (seniority) params.seniority = seniority
+  if (remote) params.remote = 'true'
+
+  const { jobs, loading, error, total } = useJobs(params)
+
+  const visible = jobs.slice(0, displayCount)
+  const hasMore = total > displayCount
+
+  const clearFilters = () => {
+    setSearch('')
+    setLocation('')
+    setCategory('')
+    setSeniority('')
+    setRemote(false)
+    setSort('recent')
+    setDisplayCount(12)
+    setSearchParams({}, { replace: true })
+  }
 
   return (
     <PageShell>
@@ -54,33 +86,73 @@ export default function BrowseJobs() {
             <p className="text-neutral-400 max-w-xl mx-auto">Find your next opportunity from top companies</p>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3 max-w-2xl mx-auto mb-10">
+          <div className="flex flex-col sm:flex-row gap-3 max-w-2xl mx-auto mb-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-500" />
               <Input
                 placeholder="Search jobs or companies..."
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => { setSearch(e.target.value); updateParam('search', e.target.value) }}
                 className="pl-10"
               />
             </div>
+            <div className="relative flex-1">
+              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-500" />
+              <Input
+                placeholder="Filter by location..."
+                value={location}
+                onChange={(e) => { setLocation(e.target.value); updateParam('location', e.target.value) }}
+                className="pl-10"
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row flex-wrap gap-3 max-w-2xl mx-auto mb-10">
             <select
-              value={type}
-              onChange={(e) => setType(e.target.value)}
-              className="h-10 min-h-[44px] rounded-lg border border-white/10 bg-white/5 px-3 text-sm text-white min-w-[140px]"
-              aria-label="Filter by job type"
+              value={category}
+              onChange={(e) => { setCategory(e.target.value); updateParam('category', e.target.value) }}
+              className="h-10 min-h-[44px] rounded-lg border border-white/10 bg-white/5 px-3 text-sm text-white flex-1 min-w-[140px]"
+              aria-label="Filter by category"
             >
-              <option value="">All Types</option>
-              <option value="FULL_TIME">Full Time</option>
-              <option value="PART_TIME">Part Time</option>
-              <option value="CONTRACT">Contract</option>
-              <option value="INTERNSHIP">Internship</option>
+              <option value="">All Categories</option>
+              {CATEGORIES.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
             </select>
+            <select
+              value={seniority}
+              onChange={(e) => { setSeniority(e.target.value); updateParam('seniority', e.target.value) }}
+              className="h-10 min-h-[44px] rounded-lg border border-white/10 bg-white/5 px-3 text-sm text-white flex-1 min-w-[140px]"
+              aria-label="Filter by seniority"
+            >
+              <option value="">All Seniorities</option>
+              {SENIORITIES.map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+            <select
+              value={sort}
+              onChange={(e) => { setSort(e.target.value); updateParam('sort', e.target.value) }}
+              className="h-10 min-h-[44px] rounded-lg border border-white/10 bg-white/5 px-3 text-sm text-white flex-1 min-w-[140px]"
+              aria-label="Sort jobs"
+            >
+              {SORT_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+            <label className="flex items-center gap-2 text-sm text-neutral-400 cursor-pointer select-none px-1">
+              <Switch
+                checked={remote}
+                onCheckedChange={(checked) => { setRemote(checked); updateParam('remote', checked ? 'true' : '') }}
+                aria-label="Remote only"
+              />
+              Remote only
+            </label>
           </div>
 
           {loading ? (
             <JobListSkeleton />
-          ) : filtered.length === 0 ? (
+          ) : jobs.length === 0 ? (
             <div className="text-center py-20">
               <img
                 src="/images/No%20Jobs.png"
@@ -91,7 +163,7 @@ export default function BrowseJobs() {
               <p className="text-sm text-neutral-500 mb-6">Try adjusting your search or filters</p>
               <Button
                 variant="outline"
-                onClick={() => { setSearch(''); setType(''); setDisplayCount(12) }}
+                onClick={clearFilters}
                 className="border-white/10"
               >
                 Clear Filters
@@ -108,13 +180,13 @@ export default function BrowseJobs() {
                     viewport={{ once: true, margin: '-80px' }}
                     transition={{ delay: reduced ? 0 : i * 0.05 }}
                   >
-                    <Link to={`/jobs/${job.slug}`}>
+                    <Link to={`/jobs/${job.id}`}>
                       <Card className="h-full hover:border-emerald-500/30 transition-all duration-300 group">
                         <CardContent className="p-6">
                           <div className="flex items-start justify-between mb-4">
                             <div className="w-12 h-12 rounded-xl bg-neutral-800 flex items-center justify-center overflow-hidden">
-                              {job.company?.companyLogo ? (
-                                <img src={job.company.companyLogo} alt={job.company.companyName} className="w-full h-full object-cover" />
+                              {job.companyLogo ? (
+                                <img src={job.companyLogo} alt={job.company} className="w-full h-full object-cover" />
                               ) : (
                                 <img
                                   src="/images/Company%20Avatar%20Placeholder.png"
@@ -125,11 +197,10 @@ export default function BrowseJobs() {
                             </div>
                             <div className="flex items-center gap-1">
                               <SaveJobButton jobId={job.id} />
-                              {job.isFeatured && <Badge variant="featured">Featured</Badge>}
                             </div>
                           </div>
                           <h3 className="font-semibold text-white group-hover:text-emerald-400 transition-colors mb-1">{job.title}</h3>
-                          <p className="text-sm text-neutral-400 mb-3">{job.company?.companyName}</p>
+                          <p className="text-sm text-neutral-400 mb-3">{job.company}</p>
                           <div className="flex flex-wrap gap-3 text-xs text-neutral-500">
                             <span className="flex items-center gap-1">
                               <MapPin className="h-3 w-3" />
@@ -137,15 +208,24 @@ export default function BrowseJobs() {
                             </span>
                             <span className="flex items-center gap-1">
                               <Briefcase className="h-3 w-3" />
-                              {displayJobType(job.jobType)}
+                              {job.category}
                             </span>
+                            {job.seniority && <span className="capitalize">{job.seniority}</span>}
+                            {job.remote && <span className="text-emerald-400">Remote</span>}
                           </div>
+                          {job.tags.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5 mt-3">
+                              {job.tags.slice(0, 3).map((tag) => (
+                                <Badge key={tag} variant="secondary">{tag}</Badge>
+                              ))}
+                            </div>
+                          )}
                           <div className="flex items-center justify-between mt-3">
-                            {formatSalary(job.salaryMin, job.salaryMax) && (
-                              <p className="text-sm text-emerald-400 font-medium">{formatSalary(job.salaryMin, job.salaryMax)}</p>
+                            {formatSalary(job.salaryMin, job.salaryMax, job.currency) && (
+                              <p className="text-sm text-emerald-400 font-medium">{formatSalary(job.salaryMin, job.salaryMax, job.currency)}</p>
                             )}
-                            {job.publishedAt && (
-                              <p className="text-xs text-neutral-500">{formatRelativeTime(job.publishedAt)}</p>
+                            {job.postedDate && (
+                              <p className="text-xs text-neutral-500">{formatRelativeTime(job.postedDate)}</p>
                             )}
                           </div>
                         </CardContent>
@@ -158,11 +238,11 @@ export default function BrowseJobs() {
                 <div className="flex justify-center mt-10">
                   <Button
                     variant="outline"
-                    onClick={() => setDisplayCount(filtered.length)}
+                    onClick={() => setDisplayCount(total)}
                     className="border-white/10 text-white gap-2 px-8"
                   >
                     <ChevronDown className="h-4 w-4" />
-                    Show All ({filtered.length} jobs)
+                    Show All ({total} jobs)
                   </Button>
                 </div>
               )}

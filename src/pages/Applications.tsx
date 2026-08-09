@@ -77,8 +77,8 @@ export default function Applications() {
                       <CardContent className="p-4 sm:p-6 flex items-center justify-between gap-4">
                         <div className="flex items-start gap-4 min-w-0">
                           <div className="w-10 h-10 rounded-lg bg-neutral-800 flex items-center justify-center overflow-hidden shrink-0">
-                            {app.job?.company?.companyLogo ? (
-                              <img src={app.job.company.companyLogo} alt="" className="w-full h-full object-cover" />
+                            {app.job?.companyLogo ? (
+                              <img src={app.job.companyLogo} alt="" className="w-full h-full object-cover" />
                             ) : (
                               <img
                                 src="/images/Company%20Avatar%20Placeholder.png"
@@ -91,7 +91,7 @@ export default function Applications() {
                             <h3 className="font-medium text-white group-hover:text-emerald-400 transition-colors truncate">
                               {app.job?.title || 'Position'}
                             </h3>
-                            <p className="text-sm text-neutral-400 truncate">{app.job?.company?.companyName || 'Company'}</p>
+                            <p className="text-sm text-neutral-400 truncate">{app.job?.company || 'Company'}</p>
                             <p className="text-xs text-neutral-500 mt-1">
                               Applied {formatRelativeTime(app.appliedAt)}
                             </p>

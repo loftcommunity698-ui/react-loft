@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom'
 import api from '@/lib/api'
 
 interface SaveJobButtonProps {
-  jobId: number
+  jobId: string
   initiallySaved?: boolean
   className?: string
 }

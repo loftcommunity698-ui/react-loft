@@ -6,6 +6,7 @@ import {
   Building,
   MapPin,
   Globe,
+  DollarSign,
   X,
   Send,
   Upload,
@@ -16,13 +17,14 @@ import {
 import { UploadButton } from '@uploadthing/react'
 import type { OurFileRouter } from '@/lib/uploadthing'
 import type { Job } from '@/lib/types'
+import { formatSalary } from '@/lib/mappers'
 import { toast } from 'sonner'
 
 interface ApplyJobModalProps {
   isOpen: boolean
   onClose: () => void
   job: Job | null
-  onSubmit: (data: { jobId?: number; coverLetter: string; resumeUrl?: string }) => Promise<void>
+  onSubmit: (data: { jobId?: string; coverLetter: string; resumeUrl?: string }) => Promise<void>
   isSubmitting?: boolean
 }
 
@@ -94,30 +96,43 @@ export default function ApplyJobModal({ isOpen, onClose, job, onSubmit, isSubmit
               </h2>
 
               <div className="flex flex-wrap items-center gap-4 mb-4">
-                {job?.company?.companyName && (
+                {job?.company && (
                   <div className="flex items-center text-neutral-300">
                     <Building className="w-4 h-4 mr-2 text-emerald-500" />
-                    {job.company.companyName}
+                    {job.company}
                   </div>
                 )}
 
-                {(job?.location || job?.city) && (
+                {job?.location && (
                   <div className="flex items-center text-neutral-300">
                     <MapPin className="w-4 h-4 mr-2 text-emerald-500" />
-                    {job.location || job.city}
+                    {job.location}
                   </div>
                 )}
 
-                {job?.remoteWork && (
+                {job?.remote && (
                   <div className="flex items-center text-emerald-400">
                     <Globe className="w-4 h-4 mr-2" />
                     Remote
                   </div>
                 )}
 
-                {job?.jobType && (
+                {job?.category && (
                   <span className="bg-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full text-sm font-medium">
-                    {job.jobType}
+                    {job.category}
+                  </span>
+                )}
+
+                {job?.seniority && (
+                  <span className="capitalize bg-neutral-800 text-neutral-300 px-3 py-1 rounded-full text-sm font-medium border border-neutral-700">
+                    {job.seniority}
+                  </span>
+                )}
+
+                {job && formatSalary(job.salaryMin, job.salaryMax, job.currency) && (
+                  <span className="flex items-center text-neutral-300">
+                    <DollarSign className="w-4 h-4 mr-2 text-emerald-500" />
+                    {formatSalary(job.salaryMin, job.salaryMax, job.currency)}
                   </span>
                 )}
               </div>
@@ -130,30 +145,44 @@ export default function ApplyJobModal({ isOpen, onClose, job, onSubmit, isSubmit
               </div>
             )}
 
-            {job?.skills && job.skills.length > 0 && !showApplicationForm && (
+            {job?.tags && job.tags.length > 0 && !showApplicationForm && (
               <div className="mb-6">
-                <h3 className="text-lg font-bold text-white mb-3">Required Skills</h3>
+                <h3 className="text-lg font-bold text-white mb-3">Tags</h3>
                 <div className="flex flex-wrap gap-2">
-                  {job.skills.map((skill, index) => (
+                  {job.tags.map((tag, index) => (
                     <span
                       key={index}
                       className="bg-neutral-800 text-neutral-300 px-3 py-1 rounded-full text-sm font-medium border border-neutral-700"
                     >
-                      {skill}
+                      {tag}
                     </span>
                   ))}
                 </div>
               </div>
             )}
 
-            {job?.benefits && !showApplicationForm && (
+            {job?.requirements && job.requirements.length > 0 && !showApplicationForm && (
               <div className="mb-6">
-                <h3 className="text-lg font-bold text-white mb-3">Benefits</h3>
+                <h3 className="text-lg font-bold text-white mb-3">Requirements</h3>
                 <ul className="space-y-2">
-                  {job.benefits.split('\n').filter(Boolean).map((benefit, index) => (
+                  {job.requirements.map((req, index) => (
                     <li key={index} className="flex items-start text-neutral-300">
                       <span className="text-emerald-400 mr-2 mt-1">•</span>
-                      {benefit}
+                      {req}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {job?.responsibilities && job.responsibilities.length > 0 && !showApplicationForm && (
+              <div className="mb-6">
+                <h3 className="text-lg font-bold text-white mb-3">Responsibilities</h3>
+                <ul className="space-y-2">
+                  {job.responsibilities.map((resp, index) => (
+                    <li key={index} className="flex items-start text-neutral-300">
+                      <span className="text-emerald-400 mr-2 mt-1">•</span>
+                      {resp}
                     </li>
                   ))}
                 </ul>
@@ -169,7 +198,7 @@ export default function ApplyJobModal({ isOpen, onClose, job, onSubmit, isSubmit
                 <div className="mb-6 pb-4 border-b border-neutral-800">
                   <h3 className="text-lg font-bold text-white mb-2">Apply for this Position</h3>
                   <p className="text-neutral-400 text-sm">
-                    Submit your application for {job?.title} at {job?.company?.companyName}
+                    Submit your application for {job?.title} at {job?.company}
                   </p>
                 </div>
 

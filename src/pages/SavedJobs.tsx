@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { useSavedJobs } from '@/lib/api-hooks'
 import { useAuth } from '@/providers/AuthProvider'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
-import { displayJobType, formatRelativeTime } from '@/lib/mappers'
+import { formatRelativeTime } from '@/lib/mappers'
 
 const containerVariants = {
   hidden: {},
@@ -76,10 +76,10 @@ export default function SavedJobs() {
                   <Card className="hover:border-emerald-500/30 transition-all duration-300">
                     <CardContent className="p-4 sm:p-6">
                       <div className="flex items-start justify-between gap-4">
-                        <Link to={`/jobs/${sj.job.slug}`} className="flex items-start gap-4 min-w-0 flex-1">
+                        <Link to={`/jobs/${sj.job.id}`} className="flex items-start gap-4 min-w-0 flex-1">
                           <div className="w-10 h-10 rounded-lg bg-neutral-800 flex items-center justify-center overflow-hidden shrink-0">
-                            {sj.job.company?.companyLogo ? (
-                              <img src={sj.job.company.companyLogo} alt="" className="w-full h-full object-cover" />
+                            {sj.job.companyLogo ? (
+                              <img src={sj.job.companyLogo} alt="" className="w-full h-full object-cover" />
                             ) : (
                               <img
                                 src="/images/Company%20Avatar%20Placeholder.png"
@@ -93,7 +93,7 @@ export default function SavedJobs() {
                               {sj.job.title}
                             </h3>
                             <p className="text-sm text-neutral-400 truncate">
-                              {sj.job.company?.companyName || 'Unknown Company'}
+                              {sj.job.company || 'Unknown Company'}
                             </p>
                             <div className="flex flex-wrap gap-3 mt-2 text-xs text-neutral-500">
                               {sj.job.location && (
@@ -102,10 +102,15 @@ export default function SavedJobs() {
                                   {sj.job.location}
                                 </span>
                               )}
-                              <span className="flex items-center gap-1">
-                                <Briefcase className="h-3 w-3" />
-                                {displayJobType(sj.job.jobType)}
-                              </span>
+                              {sj.job.category && (
+                                <span className="flex items-center gap-1">
+                                  <Briefcase className="h-3 w-3" />
+                                  {sj.job.category}
+                                </span>
+                              )}
+                              {sj.job.seniority && (
+                                <span className="capitalize">{sj.job.seniority}</span>
+                              )}
                               <span className="flex items-center gap-1">
                                 <Clock className="h-3 w-3" />
                                 Saved {formatRelativeTime(sj.savedAt)}
