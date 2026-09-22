@@ -42,7 +42,7 @@ export default function ContactSupportModal() {
       toast.success('Message sent!')
       setForm({ name: '', email: '', subject: '', message: '' })
     } catch (err: any) {
-      const supportEmail = 'hiring.pathmatch@gmail.com'
+      const supportEmail = 'loftcommunity82@gmail.com'
       const mailtoHref = `mailto:${supportEmail}?subject=${encodeURIComponent(form.subject)}&body=${encodeURIComponent(`From: ${form.name} (${form.email})\n\n${form.message}`)}`
       setStatus({
         type: 'error',
@@ -159,7 +159,7 @@ export default function ContactSupportModal() {
               variant="outline"
               className="border-border"
               onClick={() => {
-                window.location.href = 'mailto:hiring.pathmatch@gmail.com'
+                window.location.href = 'mailto:loftcommunity82@gmail.com'
               }}
             >
               <Mail className="h-4 w-4" />

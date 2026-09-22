@@ -83,11 +83,11 @@ export default function App() {
             <Route path="/employer/jobs/:id/candidates" element={<ProtectedRoute requiredRole="employer"><JobCandidates /></ProtectedRoute>} />
             <Route path="/employer/jobs/:id/edit" element={<ProtectedRoute requiredRole="employer"><EditJob /></ProtectedRoute>} />
             <Route path="/guide" element={<ProtectedRoute><Guide /></ProtectedRoute>} />
-            <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
-            <Route path="/admin/settings" element={<ProtectedRoute><AdminSettings /></ProtectedRoute>} />
-            <Route path="/admin/employers" element={<ProtectedRoute><AdminEmployers /></ProtectedRoute>} />
-            <Route path="/admin/applications" element={<ProtectedRoute><AdminApplications /></ProtectedRoute>} />
-            <Route path="/admin/applications/:id" element={<ProtectedRoute><AdminApplicationDetail /></ProtectedRoute>} />
+            <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><Admin /></ProtectedRoute>} />
+            <Route path="/admin/settings" element={<ProtectedRoute requiredRole="admin"><AdminSettings /></ProtectedRoute>} />
+            <Route path="/admin/employers" element={<ProtectedRoute requiredRole="admin"><AdminEmployers /></ProtectedRoute>} />
+            <Route path="/admin/applications" element={<ProtectedRoute requiredRole="admin"><AdminApplications /></ProtectedRoute>} />
+            <Route path="/admin/applications/:id" element={<ProtectedRoute requiredRole="admin"><AdminApplicationDetail /></ProtectedRoute>} />
             <Route path="/error" element={<ErrorPage />} />
           </Route>
 

@@ -5,7 +5,7 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      '@': '/home/jacobp/Desktop/Projecs/react-loft/src',
+      '@': './src',
     },
   },
   test: {

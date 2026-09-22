@@ -4,7 +4,7 @@ import { useReveal } from '@/hooks/useReveal'
 
 const contactInfo = [
   { icon: MapPin, label: 'Address', value: '123 Innovation Drive, Tech Valley, CA 94025' },
-  { icon: Mail, label: 'Email', value: 'hiring.pathmatch@gmail.com', href: 'mailto:hiring.pathmatch@gmail.com' },
+  { icon: Mail, label: 'Email', value: 'loftcommunity82@gmail.com', href: 'mailto:loftcommunity82@gmail.com' },
   { icon: Phone, label: 'Phone', value: '+1 (555) 123-4567', href: 'tel:+15551234567' },
   { icon: Clock, label: 'Hours', value: 'Mon-Fri, 9:00 AM - 6:00 PM PST' },
 ]

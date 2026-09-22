@@ -54,7 +54,7 @@ export default function Privacy() {
 
             <section>
               <h2 className="text-lg font-semibold text-white mb-3">7. Contact</h2>
-              <p>For privacy-related inquiries, please contact us at hiring.pathmatch@gmail.com. We aim to respond to all queries within 48 hours.</p>
+              <p>For privacy-related inquiries, please contact us at loftcommunity82@gmail.com. We aim to respond to all queries within 48 hours.</p>
             </section>
           </div>
         </motion.div>

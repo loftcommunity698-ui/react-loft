@@ -30,9 +30,9 @@ export default function JobDetail() {
     }
     try {
       await applyToJob(id!, { coverLetter: data.coverLetter, resumeUrl: data.resumeUrl, email: user?.email })
-      toast.success('Application submitted!')
+      toast.success('Application submitted! Check your email for the next steps.')
       setShowApply(false)
-      navigate('/dashboard')
+      navigate('/dashboard', { state: { applySuccess: true } })
     } catch (err: any) {
       toast.error(err.response?.data?.error || err.response?.data?.message || 'Failed to apply')
     }

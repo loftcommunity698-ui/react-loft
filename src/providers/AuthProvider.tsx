@@ -31,6 +31,7 @@ function toUser(raw: any): User | null {
     isEmployer: raw.isEmployer != null ? raw.isEmployer : raw.employerProfile != null,
     isApplicant: raw.isApplicant ?? true,
     isVerified: raw.isVerified ?? false,
+    isAdmin: raw.isAdmin ?? false,
     needsOnboarding: raw.needsOnboarding ?? false,
   }
 }

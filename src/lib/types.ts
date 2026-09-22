@@ -10,6 +10,7 @@ export interface User {
   isEmployer: boolean
   isApplicant: boolean
   isVerified: boolean
+  isAdmin?: boolean
   needsOnboarding?: boolean
 }
 

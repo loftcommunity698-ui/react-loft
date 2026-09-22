@@ -20,6 +20,7 @@ import api, {
   getAdminApplication,
 } from './api'
 import { USE_JSON_DATA } from './config'
+import { onSSE } from './sse'
 import {
   getJobsFromJson,
   getJobFromJson,
@@ -564,6 +565,13 @@ export function useNotifications(_email?: string) {
   }, [])
 
   useEffect(() => { fetch() }, [fetch])
+
+  useEffect(() => {
+    const unsubscribe = onSSE('new_notification', () => {
+      fetch()
+    })
+    return unsubscribe
+  }, [fetch])
 
   const markRead = async (ids: number[]) => {
     await markNotificationsRead(ids)
