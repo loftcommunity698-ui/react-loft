@@ -5,7 +5,6 @@ import {
   LayoutDashboard,
   User,
   Bookmark,
-  MessageSquare,
   Bell,
   Settings,
   LogOut,
@@ -21,7 +20,6 @@ const dropdownItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/profile', label: 'Profile', icon: User },
   { href: '/saved-jobs', label: 'Saved Jobs', icon: Bookmark },
-  { href: '/messages', label: 'Messages', icon: MessageSquare },
   { href: '/notifications', label: 'Notifications', icon: Bell },
   { href: '/settings', label: 'Settings', icon: Settings },
 ]

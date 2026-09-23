@@ -9,6 +9,7 @@ import PageShell from '@/components/layout/PageShell'
 import SaveJobButton from '@/components/sections/jobs/SaveJobButton'
 import ApplyJobModal from '@/components/modals/ApplyJobModal'
 import { useJob, useApplyToJob } from '@/lib/api-hooks'
+import { sendApplicationConfirmation } from '@/lib/email-service'
 import { useAuth } from '@/providers/AuthProvider'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 import { formatSalary, formatRelativeTime } from '@/lib/mappers'
@@ -23,14 +24,23 @@ export default function JobDetail() {
   const { apply: applyToJob, applying } = useApplyToJob()
   const [showApply, setShowApply] = useState(false)
 
-  async function handleApply(data: { jobId?: string; coverLetter: string; resumeUrl?: string }) {
+  async function handleApply(data: { jobId?: string; coverLetter: string; resumeUrl?: string; contactEmail?: string }) {
     if (!isAuthenticated) {
       navigate('/login')
       return
     }
     try {
-      await applyToJob(id!, { coverLetter: data.coverLetter, resumeUrl: data.resumeUrl, email: user?.email })
-      toast.success('Application submitted! Check your email for the next steps.')
+      await applyToJob(id!, { coverLetter: data.coverLetter, resumeUrl: data.resumeUrl, contactEmail: data.contactEmail })
+      const applicantEmail = data.contactEmail?.trim() || user?.email || ''
+      if (applicantEmail && job) {
+        sendApplicationConfirmation({
+          to: applicantEmail,
+          applicantName: user?.firstName || 'there',
+          jobTitle: job.title,
+          companyName: job.company,
+        }).catch(() => {})
+      }
+      toast.success('Application submitted! We\'ll review your application and reach out via email for any further updates.')
       setShowApply(false)
       navigate('/dashboard', { state: { applySuccess: true } })
     } catch (err: any) {
@@ -183,6 +193,7 @@ export default function JobDetail() {
         isOpen={showApply}
         onClose={() => setShowApply(false)}
         job={job}
+        defaultEmail={user?.email ?? ''}
         onSubmit={handleApply}
         isSubmitting={applying}
       />

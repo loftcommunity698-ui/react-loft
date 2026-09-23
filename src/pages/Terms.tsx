@@ -54,7 +54,7 @@ export default function Terms() {
 
             <section>
               <h2 className="text-lg font-semibold text-white mb-3">7. Contact</h2>
-              <p>For questions about these terms, please contact us at loftcommunity82@gmail.com.</p>
+              <p>For questions about these terms, please contact us at loftcommunity698@gmail.com.</p>
             </section>
           </div>
         </motion.div>

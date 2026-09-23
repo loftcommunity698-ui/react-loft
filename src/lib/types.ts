@@ -75,48 +75,17 @@ export interface Application {
   }
 }
 
-export interface Message {
-  id: number
-  content: string
-  jobId: number | null
-  readAt: string | null
-  createdAt: string
-  isOwn: boolean
-  sender: {
-    id: number
-    clerkId: string
-    name: string | null
-    firstName: string | null
-    lastName: string | null
-    profileImage: string | null
-  }
-  receiver: {
-    id: number
-    clerkId: string
-    name: string | null
-    firstName: string | null
-    lastName: string | null
-    profileImage: string | null
-  }
-}
 
-export interface Conversation {
-  id: string
-  participantId: string
-  participantName: string
-  participantEmail: string
-  participantImage: string | null
-  lastMessage: string
-  lastMessageAt: string
-  unread: boolean
-  messages: Message[]
-}
+
+
 
 export interface AuthResponse {
   success: boolean
   user?: User
   message?: string
   verificationToken?: string
+  verificationUrl?: string
+  resetUrl?: string
 }
 
 export interface LoginInput {

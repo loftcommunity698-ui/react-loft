@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Menu, X, LayoutDashboard, User, Bookmark, MessageSquare, LogOut, Briefcase, GitBranch, Building2 } from 'lucide-react'
+import { Menu, X, LayoutDashboard, User, Bookmark, LogOut, Briefcase, GitBranch, Building2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { LogoWithText } from '@/components/ui/logo'
 import NavbarDropdown from './NavbarDropdown'
@@ -19,7 +19,6 @@ const authLinks = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/profile', label: 'Profile', icon: User },
   { href: '/saved-jobs', label: 'Saved Jobs', icon: Bookmark },
-  { href: '/messages', label: 'Messages', icon: MessageSquare },
 ]
 
 export default function Navbar() {

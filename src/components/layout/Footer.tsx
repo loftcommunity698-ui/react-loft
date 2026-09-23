@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom'
-import { Twitter, Linkedin, Github, Instagram } from 'lucide-react'
 import { LogoWithText } from '@/components/ui/logo'
 
 const footerLinks = {
@@ -22,12 +21,9 @@ const footerLinks = {
   ],
 }
 
-const socialLinks = [
-  { icon: Twitter, href: '#', label: 'Twitter' },
-  { icon: Linkedin, href: '#', label: 'LinkedIn' },
-  { icon: Github, href: '#', label: 'GitHub' },
-  { icon: Instagram, href: '#', label: 'Instagram' },
-]
+
+
+
 
 export default function Footer() {
   return (
@@ -39,18 +35,6 @@ export default function Footer() {
             <p className="text-sm text-neutral-400 leading-relaxed">
               Your trusted platform for finding your dream job and connecting with top employers.
             </p>
-            <div className="flex gap-3">
-              {socialLinks.map((social) => (
-                <a
-                  key={social.label}
-                  href={social.href}
-                  aria-label={social.label}
-                  className="w-10 h-10 rounded-lg bg-white/5 hover:bg-emerald-600/20 text-neutral-400 hover:text-emerald-400 flex items-center justify-center transition-all duration-200 min-w-[44px] min-h-[44px]"
-                >
-                  <social.icon className="h-4 w-4" />
-                </a>
-              ))}
-            </div>
           </div>
 
           <div className="space-y-4">

@@ -4,7 +4,6 @@ import {
   Briefcase,
   FileText,
   Eye,
-  Mail,
   ArrowRight,
   Search,
   User,
@@ -150,18 +149,6 @@ export default function Dashboard() {
                 </div>
               </CardContent>
             </Card>
-
-            <Card>
-              <CardContent className="flex items-center gap-4 p-6">
-                <div className="rounded-xl bg-amber-500/10 p-3">
-                  <Mail className="h-6 w-6 text-amber-400" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-white">{stats?.messages ?? 0}</p>
-                  <p className="text-xs text-neutral-400">Messages</p>
-                </div>
-              </CardContent>
-            </Card>
           </motion.div>
 
           {/* Recent Applications */}
@@ -265,15 +252,7 @@ export default function Dashboard() {
                   </div>
                 </Link>
               </Button>
-              <Button asChild variant="outline" className="h-auto py-4 justify-start gap-3">
-                <Link to="/messages">
-                  <Mail className="h-5 w-5 text-amber-400 shrink-0" />
-                  <div className="text-left">
-                    <p className="text-sm font-medium">Messages</p>
-                    <p className="text-xs text-neutral-500 font-normal">View your inbox</p>
-                  </div>
-                </Link>
-              </Button>
+
             </div>
           </motion.div>
         </motion.div>

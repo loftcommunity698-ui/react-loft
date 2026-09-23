@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react'
 import api from '@/lib/api'
+import { sendEmailVerification, sendPasswordReset } from '@/lib/email-service'
 import type { User, LoginInput, RegisterInput, AuthResponse } from '@/lib/types'
 
 interface AuthContextType {
@@ -116,6 +117,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const res = await api.post('/auth/register', input)
       const data = res.data as AuthResponse
       if (data.success && data.user?.email) {
+        if (data.verificationUrl) {
+          sendEmailVerification({
+            to: data.user.email,
+            name: data.user.firstName || input.firstName || 'there',
+            verificationUrl: data.verificationUrl,
+          }).catch(() => {})
+        }
         const profile = await fetchProfile(data.user.email)
         if (profile) {
           setUser(profile)
@@ -140,8 +148,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const requestPasswordReset = useCallback(async (email: string) => {
     try {
       const res = await api.post('/auth/reset-password', { email })
-      const data = res.data as { success: boolean; message?: string }
+      const data = res.data as { success: boolean; message?: string; resetUrl?: string }
       if (data.success) {
+        if (data.resetUrl) {
+          sendPasswordReset({ to: email, resetUrl: data.resetUrl }).catch(() => {})
+        }
         return { success: true, message: data.message }
       }
       return { success: false, error: data.message || 'Failed to send reset email' }

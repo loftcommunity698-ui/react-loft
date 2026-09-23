@@ -1,5 +1,4 @@
 import { motion } from 'framer-motion'
-import { Linkedin, Twitter } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { useReveal, useStaggerReveal } from '@/hooks/useReveal'
 
@@ -68,15 +67,7 @@ export default function TeamSection() {
                   </div>
                   <h3 className="text-base sm:text-lg font-semibold text-white">{member.name}</h3>
                   <p className="text-sm text-emerald-400 mb-1">{member.role}</p>
-                  <p className="text-xs text-neutral-500 mb-4 max-w-[200px]">{member.bio}</p>
-                  <div className="flex gap-2">
-                    <a href="#" className="w-9 h-9 rounded-lg bg-white/5 hover:bg-emerald-600/20 text-neutral-400 hover:text-emerald-400 flex items-center justify-center transition-all min-w-[44px] min-h-[44px]">
-                      <Linkedin className="h-4 w-4" />
-                    </a>
-                    <a href="#" className="w-9 h-9 rounded-lg bg-white/5 hover:bg-emerald-600/20 text-neutral-400 hover:text-emerald-400 flex items-center justify-center transition-all min-w-[44px] min-h-[44px]">
-                      <Twitter className="h-4 w-4" />
-                    </a>
-                  </div>
+                  <p className="text-xs text-neutral-500 max-w-[200px]">{member.bio}</p>
                 </CardContent>
               </Card>
             </motion.div>

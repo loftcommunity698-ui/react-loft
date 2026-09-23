@@ -19,6 +19,7 @@ import api, {
   getAdminApplications,
   getAdminApplication,
 } from './api'
+import { sendPasswordReset } from '@/lib/email-service'
 import { USE_JSON_DATA } from './config'
 import { onSSE } from './sse'
 import {
@@ -26,7 +27,7 @@ import {
   getJobFromJson,
   searchTagsFromJson,
 } from './json-service'
-import type { Job, Application, Message, Conversation, SavedJob, CompanyProfile, Notification, NotificationPrefs, JobMetrics, Candidate } from './types'
+import type { Job, Application, SavedJob, CompanyProfile, Notification, NotificationPrefs, JobMetrics, Candidate } from './types'
 import { normalizeJob } from './mappers'
 import { toast } from 'sonner'
 
@@ -206,12 +207,11 @@ export function useDashboardData(email?: string) {
     setLoading(true)
     lastFetch.current = Date.now()
     try {
-      const [appsRes, profileRes, jobsRes, savedJobsRes, messagesRes, myJobsRes] = await Promise.all([
+      const [appsRes, profileRes, jobsRes, savedJobsRes, myJobsRes] = await Promise.all([
         api.get('/applications', { params: { email: e } }).catch(() => ({ data: [] })),
         api.get('/users/profile', { params: { email: e } }).catch(() => ({ data: null })),
         api.get('/jobs', { params: { limit: '6' } }).catch(() => ({ data: { jobs: [] } })),
         fetchSavedJobs(e).catch(() => []),
-        api.get('/messages', { params: { email: e } }).catch(() => ({ data: [] })),
         api.get('/companies/jobs', { params: { email: e } }).catch(() => ({ data: [] })),
       ])
 
@@ -227,15 +227,7 @@ export function useDashboardData(email?: string) {
 
       const interviewApps = apps.filter((a: any) => a.status === 'INTERVIEW' || a.status === 'interview')
 
-      const messagesData = Array.isArray(messagesRes.data) ? messagesRes.data : messagesRes.data?.messages || []
       const myJobsData = Array.isArray(myJobsRes.data) ? myJobsRes.data : myJobsRes.data?.jobs || []
-
-      const conversationPartners = new Set<string>()
-      const myEmail = e
-      for (const msg of messagesData) {
-        const other = msg.sender?.email === myEmail ? msg.receiver?.clerkId : msg.sender?.clerkId
-        if (other) conversationPartners.add(other)
-      }
 
       setData({
         user: profile,
@@ -245,7 +237,6 @@ export function useDashboardData(email?: string) {
           profileViews: profile?.viewsCount ?? 0,
           interviewRequests: interviewApps.length,
           activeJobs: myJobsData.length,
-          messages: conversationPartners.size,
         },
         recentApplications: apps.slice(0, 5),
         currentJobs: jobsData,
@@ -277,69 +268,16 @@ export function useDashboardData(email?: string) {
   return { data, loading, error, refresh: fetchDashboard, profileData, needsProfileCompletion }
 }
 
-export function useConversations(email?: string) {
-  const [conversations, setConversations] = useState<Conversation[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
 
-  const e = email || getEmail()
 
-  async function fetchConversations() {
-    if (!e) { setLoading(false); return }
-    try {
-      const res = await api.get('/messages', { params: { email: e } })
-      const msgs: Message[] = Array.isArray(res.data) ? res.data : res.data.messages || []
-      const grouped: Record<string, Conversation> = {}
 
-      for (const msg of msgs) {
-        const isOther = !msg.isOwn
-        const other = isOther ? msg.sender : msg.receiver
-        const key = other.clerkId || String(other.id)
-        if (!grouped[key]) {
-          grouped[key] = {
-            id: key,
-            participantId: key,
-            participantName: [other.firstName, other.lastName].filter(Boolean).join(' ') || 'Unknown',
-            participantEmail: '',
-            participantImage: other.profileImage,
-            lastMessage: msg.content,
-            lastMessageAt: msg.createdAt,
-            unread: !msg.isOwn && !msg.readAt,
-            messages: [],
-          }
-        }
-        grouped[key].messages.push(msg)
-        const msgTime = new Date(msg.createdAt).getTime()
-        const currentLast = new Date(grouped[key].lastMessageAt).getTime()
-        if (msgTime > currentLast) {
-          grouped[key].lastMessage = msg.content
-          grouped[key].lastMessageAt = msg.createdAt
-        }
-      }
-
-      setConversations(
-        Object.values(grouped).sort(
-          (a, b) => new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime()
-        )
-      )
-    } catch (err: any) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => { fetchConversations() }, [e])
-
-  return { conversations, loading, error, refresh: fetchConversations }
-}
 
 // Apply to Job
 
 export function useApplyToJob() {
   const [applying, setApplying] = useState(false)
 
-  const apply = async (id: string, data: { coverLetter?: string; resumeUrl?: string; email?: string }) => {
+  const apply = async (id: string, data: { coverLetter?: string; resumeUrl?: string; contactEmail?: string }) => {
     setApplying(true)
     try {
       const res = await api.post(`/jobs/${id}/apply`, data)
@@ -400,7 +338,10 @@ export function useRequestPasswordReset() {
     setError(null)
     setSent(false)
     try {
-      await resetPassword(email)
+      const data = await resetPassword(email)
+      if (data.resetUrl) {
+        sendPasswordReset({ to: email, resetUrl: data.resetUrl }).catch(() => {})
+      }
       setSent(true)
     } catch (err: any) {
       setError(err?.response?.data?.message || err?.message || 'Something went wrong')
@@ -567,7 +508,12 @@ export function useNotifications(_email?: string) {
   useEffect(() => { fetch() }, [fetch])
 
   useEffect(() => {
-    const unsubscribe = onSSE('new_notification', () => {
+    const unsubscribe = onSSE('new_notification', (payload: any) => {
+      if (payload && (payload.title || payload.message)) {
+        toast.success(payload.title || 'New notification', {
+          description: payload.message || undefined,
+        })
+      }
       fetch()
     })
     return unsubscribe

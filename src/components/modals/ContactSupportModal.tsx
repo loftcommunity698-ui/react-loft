@@ -10,8 +10,8 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Loader2, Mail, Send, HelpCircle, AlertCircle, CheckCircle } from 'lucide-react'
-import { submitContactForm } from '@/lib/api'
 import { toast } from 'sonner'
+import { sendContactEmail, emailErrorMessage, EmailError } from '@/lib/email-service'
 
 interface ContactForm {
   name: string
@@ -37,16 +37,17 @@ export default function ContactSupportModal() {
     setStatus(null)
 
     try {
-      await submitContactForm(form)
+      await sendContactEmail(form)
       setStatus({ type: 'success', message: 'Message sent successfully! We will get back to you soon.' })
       toast.success('Message sent!')
       setForm({ name: '', email: '', subject: '', message: '' })
-    } catch (err: any) {
-      const supportEmail = 'loftcommunity82@gmail.com'
+    } catch (err) {
+      const supportEmail = 'loftcommunity698@gmail.com'
       const mailtoHref = `mailto:${supportEmail}?subject=${encodeURIComponent(form.subject)}&body=${encodeURIComponent(`From: ${form.name} (${form.email})\n\n${form.message}`)}`
+      const isConfigMissing = err instanceof EmailError && err.code === 'MISSING_CONFIG'
       setStatus({
         type: 'error',
-        message: err?.response?.data?.error || 'Network error. You can email us directly instead.',
+        message: isConfigMissing ? emailErrorMessage(err) : `${emailErrorMessage(err)} Network error. You can email us directly instead.`,
         mailto: mailtoHref,
       })
     } finally {
@@ -159,7 +160,7 @@ export default function ContactSupportModal() {
               variant="outline"
               className="border-border"
               onClick={() => {
-                window.location.href = 'mailto:loftcommunity82@gmail.com'
+                window.location.href = 'mailto:loftcommunity698@gmail.com'
               }}
             >
               <Mail className="h-4 w-4" />

@@ -1,8 +1,8 @@
-import { useParams, useNavigate, Link } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Loader2, ArrowLeft, ExternalLink, MessageSquare } from 'lucide-react'
+import { Loader2, ArrowLeft, ExternalLink } from 'lucide-react'
 import { useAdminApplication } from '@/lib/api-hooks'
 
 const statusColors: Record<string, string> = {
@@ -154,18 +154,6 @@ export default function AdminApplicationDetail() {
                     </span>
                   </div>
                 )}
-              </CardContent>
-            </Card>
-
-            <Card className="bg-card border">
-              <CardContent className="p-4">
-                <Link
-                  to={`/messages?participantId=${application.candidate?.clerkId || ''}&participantName=${encodeURIComponent([application.candidate?.firstName, application.candidate?.lastName].filter(Boolean).join(' ').trim() || 'Candidate')}`}
-                >
-                  <Button className="w-full bg-emerald-600 hover:bg-emerald-700">
-                    <MessageSquare className="w-4 h-4 mr-2" /> Message Candidate
-                  </Button>
-                </Link>
               </CardContent>
             </Card>
 

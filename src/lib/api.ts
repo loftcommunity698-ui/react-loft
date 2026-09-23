@@ -50,7 +50,7 @@ export async function getSession(): Promise<{ user?: { email: string } }> {
   return data
 }
 
-export async function resetPassword(email: string): Promise<{ success: boolean; message: string }> {
+export async function resetPassword(email: string): Promise<{ success: boolean; message: string; resetUrl?: string }> {
   const { data } = await api.post('/auth/reset-password', { email })
   return data
 }
@@ -256,13 +256,6 @@ export async function getNotificationPrefs(): Promise<NotificationPrefs> {
 
 export async function updateNotificationPrefs(prefs: Partial<NotificationPrefs>): Promise<NotificationPrefs> {
   const { data } = await api.patch('/users/notifications', prefs)
-  return data
-}
-
-// ─── Messages ────────────────────────────────────────────────────────────────
-
-export async function sendMessage(body: { email?: string; receiverId: string; content: string; jobId?: string }): Promise<{ success: boolean; message: any }> {
-  const { data } = await api.post('/messages', body)
   return data
 }
 

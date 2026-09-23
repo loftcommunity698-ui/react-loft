@@ -24,16 +24,19 @@ interface ApplyJobModalProps {
   isOpen: boolean
   onClose: () => void
   job: Job | null
-  onSubmit: (data: { jobId?: string; coverLetter: string; resumeUrl?: string }) => Promise<void>
+  defaultEmail?: string
+  onSubmit: (data: { jobId?: string; coverLetter: string; resumeUrl?: string; contactEmail?: string }) => Promise<void>
   isSubmitting?: boolean
 }
 
-export default function ApplyJobModal({ isOpen, onClose, job, onSubmit, isSubmitting = false }: ApplyJobModalProps) {
+export default function ApplyJobModal({ isOpen, onClose, job, defaultEmail = '', onSubmit, isSubmitting = false }: ApplyJobModalProps) {
   const [showApplicationForm, setShowApplicationForm] = useState(false)
   const [coverLetter, setCoverLetter] = useState('')
   const [resumeUrl, setResumeUrl] = useState('')
   const [resumeFileName, setResumeFileName] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [contactPreference, setContactPreference] = useState<'current' | 'new'>('current')
+  const [contactEmail, setContactEmail] = useState('')
 
   const handleApplyClick = () => setShowApplicationForm(true)
 
@@ -45,6 +48,7 @@ export default function ApplyJobModal({ isOpen, onClose, job, onSubmit, isSubmit
         jobId: job?.id,
         coverLetter,
         resumeUrl: resumeUrl || undefined,
+        contactEmail: contactPreference === 'new' && contactEmail.trim() ? contactEmail.trim().toLowerCase() : undefined,
       })
     } finally {
       setSubmitting(false)
@@ -56,6 +60,8 @@ export default function ApplyJobModal({ isOpen, onClose, job, onSubmit, isSubmit
     setCoverLetter('')
     setResumeUrl('')
     setResumeFileName('')
+    setContactPreference('current')
+    setContactEmail('')
     onClose()
   }
 
@@ -269,6 +275,52 @@ export default function ApplyJobModal({ isOpen, onClose, job, onSubmit, isSubmit
                       <span>Tell the employer why you are a great fit</span>
                       <span>{coverLetter.length}/500</span>
                     </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-neutral-300 mb-2">
+                      How can we contact you?
+                    </label>
+                    <p className="text-xs text-neutral-500 mb-3">
+                      We&apos;ll use this email to continue the application process. All follow-up will be sent here.
+                    </p>
+                    <div className="space-y-3">
+                      <label className="flex items-start gap-3 p-3 rounded-lg bg-neutral-800 border border-neutral-700 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="contactPreference"
+                          checked={contactPreference === 'current'}
+                          onChange={() => setContactPreference('current')}
+                          className="mt-1 accent-emerald-500"
+                        />
+                        <span className="text-sm">
+                          <span className="block font-medium text-white">Use my account email (default)</span>
+                          <span className="block text-xs text-neutral-400 mt-0.5 break-all">{defaultEmail || 'Your registration email'}</span>
+                        </span>
+                      </label>
+                      <label className="flex items-start gap-3 p-3 rounded-lg bg-neutral-800 border border-neutral-700 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="contactPreference"
+                          checked={contactPreference === 'new'}
+                          onChange={() => setContactPreference('new')}
+                          className="mt-1 accent-emerald-500"
+                        />
+                        <span className="text-sm">
+                          <span className="block font-medium text-white">Use a different email</span>
+                          <span className="block text-xs text-neutral-400 mt-0.5">Emails about this application will go to the address you enter</span>
+                        </span>
+                      </label>
+                      {contactPreference === 'new' && (
+                        <input
+                          type="email"
+                          value={contactEmail}
+                          onChange={(e) => setContactEmail(e.target.value)}
+                          placeholder="e.g. jane@example.com"
+                          className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2.5 text-white placeholder:text-neutral-500 focus:border-emerald-500 focus:ring-emerald-500 text-sm"
+                        />
+                      )}
+                    </div>
                   </div>
 
                   <div className="flex gap-3 pt-4">

@@ -28,7 +28,7 @@ const faqs = [
   },
   {
     question: 'How do I contact support?',
-    answer: 'Visit our Contact page and fill out the form, or email us directly at loftcommunity82@gmail.com. We typically respond within 24 hours.',
+    answer: 'Visit our Contact page and fill out the form, or email us directly at loftcommunity698@gmail.com. We typically respond within 24 hours.',
   },
   {
     question: 'Is my data secure?',

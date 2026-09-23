@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
-import { ArrowLeft, Users, MessageSquare, Star, Loader2, AlertCircle } from 'lucide-react'
+import { ArrowLeft, Users, Star, Loader2, AlertCircle } from 'lucide-react'
 import { useCandidates } from '@/lib/api-hooks'
 
 const statusColors: Record<string, string> = {
@@ -126,13 +126,6 @@ export default function CandidatesPage() {
                     </div>
 
                     <div className="flex gap-2 ml-4">
-                      <Link
-                        to={`/messages?participantId=${candidate.candidate.clerkId}&participantName=${encodeURIComponent((candidate.candidate.firstName + ' ' + candidate.candidate.lastName).trim() || 'Candidate')}`}
-                      >
-                        <Button variant="outline" size="sm" className="border">
-                          <MessageSquare className="w-4 h-4" />
-                        </Button>
-                      </Link>
                       <Link to="/hiring-workflow">
                         <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700">Review</Button>
                       </Link>

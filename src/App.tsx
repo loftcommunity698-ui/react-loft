@@ -18,7 +18,6 @@ import CreateJob from './pages/CreateJob'
 import Applications from './pages/Applications'
 import ApplicationDetail from './pages/ApplicationDetail'
 import Profile from './pages/Profile'
-import Messages from './pages/Messages'
 import Settings from './pages/Settings'
 import Notifications from './pages/Notifications'
 import Onboarding from './pages/Onboarding'
@@ -72,7 +71,6 @@ export default function App() {
             <Route path="/applications" element={<ProtectedRoute requiredRole="applicant"><Applications /></ProtectedRoute>} />
             <Route path="/applications/:id" element={<ProtectedRoute requiredRole="applicant"><ApplicationDetail /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-            <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="/saved-jobs" element={<ProtectedRoute requiredRole="applicant"><SavedJobs /></ProtectedRoute>} />
             <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />

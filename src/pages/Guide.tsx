@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  BookOpen, User, Briefcase, FileText, Bell, MessageSquare,
+  BookOpen, User, Briefcase, FileText, Bell, Mail,
   ArrowRight, Building2, Users, Settings, LayoutDashboard,
   PenSquare, Shield, Star,
 } from 'lucide-react'
@@ -41,25 +41,25 @@ const jobSeekerSections = [
       { action: 'View all submitted applications', detail: 'The Applications page shows every job you have applied for with current status labels.', link: '/applications', linkLabel: 'My Applications' },
       { action: 'Understand application statuses', detail: 'Status badges tell you where you stand: Pending, Reviewing, Shortlisted, Interview, Offered, or Rejected.', link: '/applications', linkLabel: 'Check Status' },
       { action: 'Prepare for interviews', detail: 'If shortlisted, you will see interview details in the application timeline. Prepare your portfolio and research the company.', link: '/applications', linkLabel: 'Review Applications' },
-      { action: 'Respond to offers', detail: 'When you receive an offer, respond promptly. Employers appreciate timely communication.', link: '/messages', linkLabel: 'Open Messages' },
+      { action: 'Respond to offers', detail: 'When you receive an offer, respond promptly. Offers arrive by email at the address on your profile.', link: '/applications', linkLabel: 'View Applications' },
     ],
   },
   {
     value: 'notifications', icon: Bell, title: 'Set Up Notifications',
     subtitle: 'Stay informed about application updates and new opportunities',
     steps: [
-      { action: 'Configure notification preferences', detail: 'Go to Notifications to choose which updates you receive — application status changes, new job matches, and messages.', link: '/notifications', linkLabel: 'Notification Settings' },
+      { action: 'Configure notification preferences', detail: 'Go to Notifications to choose which updates you receive — application status changes and new job matches.', link: '/notifications', linkLabel: 'Notification Settings' },
       { action: 'Enable email notifications', detail: 'Get email alerts for important updates like interview invitations and offer letters.', link: '/notifications', linkLabel: 'Manage Alerts' },
       { action: 'Check the notification bell', detail: 'The bell icon in the top bar shows real-time updates. A red badge indicates unread notifications.', link: '/notifications', linkLabel: 'View Notifications' },
     ],
   },
   {
-    value: 'messages', icon: MessageSquare, title: 'Communicate with Employers',
-    subtitle: 'Direct messaging keeps all your conversations in one place',
+    value: 'email', icon: Mail, title: 'Email Communication',
+    subtitle: 'All application follow-up arrives by email',
     steps: [
-      { action: 'Access your messages', detail: 'The Messages page centralizes all communication with employers and recruiters.', link: '/messages', linkLabel: 'Open Messages' },
-      { action: 'Respond promptly', detail: 'Employers appreciate quick replies. Aim to respond within 24 hours during business days.', link: '/messages', linkLabel: 'Check Inbox' },
-      { action: 'Keep communication professional', detail: 'Use clear subject lines, address the recipient by name, and proofread before sending.', link: '/messages', linkLabel: 'Send Message' },
+      { action: 'Check your inbox', detail: 'Employers contact you by email with status updates, interview invitations, and offers. Check the email on your profile regularly.' },
+      { action: 'Respond from email', detail: 'When you receive an offer or interview request, reply directly to the employer by email.' },
+      { action: 'Keep communication professional', detail: 'Use clear subject lines, address the recipient by name, and proofread before sending.' },
     ],
   },
   {
@@ -98,7 +98,7 @@ const employerSections = [
     steps: [
       { action: 'View incoming applications', detail: 'The Hiring Workflow page shows all candidates organized by pipeline stage.', link: '/hiring-workflow', linkLabel: 'Open Pipeline' },
       { action: 'Screen applications', detail: 'Review each application, check resumes and cover letters. Move candidates forward or pass as needed.', link: '/hiring-workflow', linkLabel: 'Review Candidates' },
-      { action: 'Schedule interviews', detail: 'Use the pipeline to advance candidates to interview stages. Coordinate scheduling through messages.', link: '/hiring-workflow', linkLabel: 'Manage Pipeline' },
+      { action: 'Schedule interviews', detail: 'Use the pipeline to advance candidates to interview stages. Coordinate scheduling by email and employer notes.', link: '/hiring-workflow', linkLabel: 'Manage Pipeline' },
       { action: 'Make offers', detail: 'When you find the right candidate, move them to the Offer stage and initiate the offer process.', link: '/hiring-workflow', linkLabel: 'Send Offer' },
     ],
   },
@@ -117,15 +117,15 @@ const employerSections = [
     steps: [
       { action: 'Update profile information', detail: 'Go to Settings to update your name, email, and notification preferences.', link: '/settings', linkLabel: 'Go to Settings' },
       { action: 'Verify your email', detail: 'A verified email is required to post jobs and communicate with candidates.', link: '/settings', linkLabel: 'Verify Email' },
-      { action: 'Manage notifications', detail: 'Choose which updates to receive — new applications, candidate messages, and system notifications.', link: '/notifications', linkLabel: 'Notification Settings' },
+      { action: 'Manage notifications', detail: 'Choose which updates to receive — new applications and system notifications.', link: '/notifications', linkLabel: 'Notification Settings' },
     ],
   },
   {
-    value: 'employer-messages', icon: MessageSquare, title: 'Communicate with Candidates',
-    subtitle: 'Direct messaging keeps all candidate conversations organized',
+    value: 'employer-email', icon: Mail, title: 'Email Communication',
+    subtitle: 'Reach candidates through email',
     steps: [
-      { action: 'Message candidates directly', detail: 'Reach out to promising candidates through the Messages page to schedule interviews or ask questions.', link: '/messages', linkLabel: 'Open Messages' },
-      { action: 'Respond to applicant inquiries', detail: 'Candidates may reach out with questions about roles. Prompt responses improve candidate experience.', link: '/messages', linkLabel: 'Check Inbox' },
+      { action: 'Contact candidates by email', detail: 'Reach out to promising candidates by email to schedule interviews or ask questions.' },
+      { action: 'Respond to applicant inquiries', detail: 'Candidates may email you with questions about roles. Prompt responses improve candidate experience.' },
     ],
   },
 ]
@@ -163,9 +163,11 @@ function GuideSection({ section }: { section: typeof jobSeekerSections[0] }) {
                           <p className="text-sm font-medium text-foreground">{step.action}</p>
                           <p className="text-xs text-muted-foreground mt-1">{step.detail}</p>
                         </div>
-                        <Link to={step.link} className="flex items-center gap-1 text-xs font-medium text-emerald-400 hover:text-emerald-300 whitespace-nowrap mt-1 flex-shrink-0">
-                          {step.linkLabel} <ArrowRight className="h-3 w-3" />
-                        </Link>
+                        {'link' in step && step.linkLabel && (
+                          <Link to={step.link} className="flex items-center gap-1 text-xs font-medium text-emerald-400 hover:text-emerald-300 whitespace-nowrap mt-1 flex-shrink-0">
+                            {step.linkLabel} <ArrowRight className="h-3 w-3" />
+                          </Link>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -227,7 +229,7 @@ export default function Guide() {
             <CardDescription className="text-muted-foreground">If you are stuck or have questions, we are here to help</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-wrap gap-3">
-            <Link to="/messages"><Button variant="default" className="bg-emerald-600 hover:bg-emerald-700"><MessageSquare className="h-4 w-4 mr-2" /> Contact Support</Button></Link>
+            <Link to="/contact"><Button variant="default" className="bg-emerald-600 hover:bg-emerald-700"><Mail className="h-4 w-4 mr-2" /> Contact Support</Button></Link>
             <Link to="/settings"><Button variant="outline" className="border"><Settings className="h-4 w-4 mr-2" /> Account Settings</Button></Link>
           </CardContent>
         </Card>

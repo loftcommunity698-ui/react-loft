@@ -24,7 +24,7 @@ export default function Privacy() {
           <div className="space-y-8 text-sm text-neutral-300 leading-relaxed">
             <section>
               <h2 className="text-lg font-semibold text-white mb-3">1. Information We Collect</h2>
-              <p>We collect information you provide when creating an account, including your name, email address, phone number, and professional details such as work history, skills, and education. We also collect information about your interactions with our platform, including job applications, messages, and saved searches.</p>
+              <p>We collect information you provide when creating an account, including your name, email address, phone number, and professional details such as work history, skills, and education. We also collect information about your interactions with our platform, including job applications and saved searches.</p>
             </section>
 
             <section>
@@ -54,7 +54,7 @@ export default function Privacy() {
 
             <section>
               <h2 className="text-lg font-semibold text-white mb-3">7. Contact</h2>
-              <p>For privacy-related inquiries, please contact us at loftcommunity82@gmail.com. We aim to respond to all queries within 48 hours.</p>
+              <p>For privacy-related inquiries, please contact us at loftcommunity698@gmail.com. We aim to respond to all queries within 48 hours.</p>
             </section>
           </div>
         </motion.div>
