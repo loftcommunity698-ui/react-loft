@@ -19,7 +19,6 @@ import api, {
   getAdminApplications,
   getAdminApplication,
 } from './api'
-import { sendPasswordReset } from '@/lib/email-service'
 import { USE_JSON_DATA } from './config'
 import { onSSE } from './sse'
 import {
@@ -338,10 +337,7 @@ export function useRequestPasswordReset() {
     setError(null)
     setSent(false)
     try {
-      const data = await resetPassword(email)
-      if (data.resetUrl) {
-        sendPasswordReset({ to: email, resetUrl: data.resetUrl }).catch(() => {})
-      }
+      await resetPassword(email)
       setSent(true)
     } catch (err: any) {
       setError(err?.response?.data?.message || err?.message || 'Something went wrong')

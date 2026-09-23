@@ -1,6 +1,6 @@
 import { send as emailjsSend } from '@emailjs/browser'
 
-export type EmailType = 'contact' | 'application_confirmation' | 'email_verify' | 'password_reset'
+export type EmailType = 'contact' | 'application_confirmation'
 
 export type EmailParams = Record<string, string>
 
@@ -117,42 +117,6 @@ export async function sendApplicationConfirmation(input: {
       `Track your application: ${dashboardUrl}`,
       '',
       'You received this email because you applied for a position on LoftCommunity.',
-    ].join('\n'),
-  })
-}
-
-export async function sendEmailVerification(input: { to: string; name: string; verificationUrl: string }): Promise<void> {
-  const { to, name, verificationUrl } = input
-  await sendByType('email_verify', {
-    recipient: to,
-    fromName: 'LoftCommunity',
-    fromEmail: 'noreply@loftcommunity.com',
-    subject: 'Verify your LoftCommunity email',
-    message: [
-      `Hi ${name},`,
-      '',
-      'Welcome to LoftCommunity! Please confirm your email address by clicking the link below:',
-      verificationUrl,
-      '',
-      'This link expires in 24 hours.',
-      'If you did not sign up for a LoftCommunity account, you can safely ignore this email.',
-    ].join('\n'),
-  })
-}
-
-export async function sendPasswordReset(input: { to: string; resetUrl: string }): Promise<void> {
-  const { to, resetUrl } = input
-  await sendByType('password_reset', {
-    recipient: to,
-    fromName: 'LoftCommunity',
-    fromEmail: 'noreply@loftcommunity.com',
-    subject: 'Reset your LoftCommunity password',
-    message: [
-      'We received a request to reset your password for LoftCommunity.',
-      'Click the link below to set a new password. This link expires in 1 hour:',
-      resetUrl,
-      '',
-      "If you didn't request this, you can safely ignore this email.",
     ].join('\n'),
   })
 }

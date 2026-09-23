@@ -50,7 +50,7 @@ export async function getSession(): Promise<{ user?: { email: string } }> {
   return data
 }
 
-export async function resetPassword(email: string): Promise<{ success: boolean; message: string; resetUrl?: string }> {
+export async function resetPassword(email: string): Promise<{ success: boolean; message: string }> {
   const { data } = await api.post('/auth/reset-password', { email })
   return data
 }

@@ -84,8 +84,6 @@ export interface AuthResponse {
   user?: User
   message?: string
   verificationToken?: string
-  verificationUrl?: string
-  resetUrl?: string
 }
 
 export interface LoginInput {
