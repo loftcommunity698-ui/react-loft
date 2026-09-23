@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { Logo } from '@/components/ui/logo'
 import { motion } from 'framer-motion'
 import { useForm } from 'react-hook-form'
@@ -25,6 +25,7 @@ type LoginForm = z.infer<typeof loginSchema>
 
 export default function Login() {
   const navigate = useNavigate()
+  const location = useLocation()
   const reduced = useReducedMotion()
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -43,7 +44,8 @@ export default function Login() {
     const result = await login(data)
     setIsLoading(false)
     if (result.success) {
-      navigate('/dashboard')
+      const redirect = (location.state as { redirect?: unknown } | null)?.redirect
+      navigate(typeof redirect === 'string' && redirect.startsWith('/') && redirect.length > 1 ? redirect : '/dashboard')
     } else {
       toast.error(result.error || 'Login failed')
     }

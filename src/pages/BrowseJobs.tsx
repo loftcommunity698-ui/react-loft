@@ -13,9 +13,36 @@ import JobListSkeleton from '@/components/skeletons/JobListSkeleton'
 import { useJobs } from '@/lib/api-hooks'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 import { formatSalary, formatRelativeTime } from '@/lib/mappers'
+import { USE_JSON_DATA } from '@/lib/config'
+import jobsData from '@/data/jobs.json'
 
-const CATEGORIES = ['Engineering', 'Design', 'Marketing', 'Sales', 'Operations', 'Product']
-const SENIORITIES = ['junior', 'mid', 'senior', 'lead', 'executive', 'expert']
+const STATIC_CATEGORIES = ['Engineering', 'Design', 'Product', 'Data', 'DevOps', 'Marketing', 'Sales']
+const STATIC_SENIORITIES = ['junior', 'mid', 'senior', 'lead', 'executive', 'expert']
+
+function orderValues(values: string[], canonical: string[]): string[] {
+  return [...values].sort((a, b) => {
+    const ai = canonical.indexOf(a)
+    const bi = canonical.indexOf(b)
+    if (ai !== -1 || bi !== -1) {
+      if (ai === -1) return 1
+      if (bi === -1) return -1
+      if (ai !== bi) return ai - bi
+    }
+    return a.localeCompare(b)
+  })
+}
+
+const DATA_CATEGORIES = orderValues(
+  [...new Set(jobsData.jobs.map((j) => j.category))],
+  ['Engineering', 'Design', 'Product', 'Data', 'DevOps', 'Marketing', 'Sales'],
+)
+const DATA_SENIORITIES = orderValues(
+  [...new Set(jobsData.jobs.map((j) => j.seniority).filter((s): s is string => Boolean(s)))],
+  ['junior', 'mid', 'senior', 'lead', 'executive', 'expert'],
+)
+
+const categories = USE_JSON_DATA && DATA_CATEGORIES.length ? DATA_CATEGORIES : STATIC_CATEGORIES
+const seniorities = USE_JSON_DATA && DATA_SENIORITIES.length ? DATA_SENIORITIES : STATIC_SENIORITIES
 const SORT_OPTIONS = [
   { value: 'recent', label: 'Most Recent' },
   { value: 'relevance', label: 'Best Match' },
@@ -111,29 +138,29 @@ export default function BrowseJobs() {
             <select
               value={category}
               onChange={(e) => { setCategory(e.target.value); updateParam('category', e.target.value) }}
-              className="h-10 min-h-[44px] rounded-lg border border-white/10 bg-white/5 px-3 text-sm text-white flex-1 min-w-[140px]"
+              className="h-10 min-h-[44px] rounded-lg border border-white/10 bg-white/5 px-3 text-base text-white flex-1 min-w-[140px]"
               aria-label="Filter by category"
             >
               <option value="">All Categories</option>
-              {CATEGORIES.map((c) => (
+              {categories.map((c) => (
                 <option key={c} value={c}>{c}</option>
               ))}
             </select>
             <select
               value={seniority}
               onChange={(e) => { setSeniority(e.target.value); updateParam('seniority', e.target.value) }}
-              className="h-10 min-h-[44px] rounded-lg border border-white/10 bg-white/5 px-3 text-sm text-white flex-1 min-w-[140px]"
+              className="h-10 min-h-[44px] rounded-lg border border-white/10 bg-white/5 px-3 text-base text-white flex-1 min-w-[140px]"
               aria-label="Filter by seniority"
             >
               <option value="">All Seniorities</option>
-              {SENIORITIES.map((s) => (
+              {seniorities.map((s) => (
                 <option key={s} value={s}>{s}</option>
               ))}
             </select>
             <select
               value={sort}
               onChange={(e) => { setSort(e.target.value); updateParam('sort', e.target.value) }}
-              className="h-10 min-h-[44px] rounded-lg border border-white/10 bg-white/5 px-3 text-sm text-white flex-1 min-w-[140px]"
+              className="h-10 min-h-[44px] rounded-lg border border-white/10 bg-white/5 px-3 text-base text-white flex-1 min-w-[140px]"
               aria-label="Sort jobs"
             >
               {SORT_OPTIONS.map((o) => (

@@ -124,7 +124,7 @@ export default function HeroSection() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  className="flex-1 bg-transparent border-none outline-none text-white placeholder:text-neutral-500 text-sm sm:text-base"
+                  className="flex-1 bg-transparent border-none outline-none text-white placeholder:text-neutral-500 text-base"
                 />
               </div>
               <div className="hidden sm:block h-8 w-px bg-white/[0.08] my-auto" />
@@ -135,7 +135,7 @@ export default function HeroSection() {
                   placeholder="Location or remote"
                   value={locationQuery}
                   onChange={(e) => setLocationQuery(e.target.value)}
-                  className="flex-1 bg-transparent border-none outline-none text-white placeholder:text-neutral-500 text-sm sm:text-base"
+                  className="flex-1 bg-transparent border-none outline-none text-white placeholder:text-neutral-500 text-base"
                 />
               </div>
               <Button size="lg" onClick={handleSearch} className="bg-emerald-600 hover:bg-emerald-700 text-white h-12 sm:h-auto w-full sm:w-auto">

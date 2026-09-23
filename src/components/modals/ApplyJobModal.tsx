@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import {
   Building,
   MapPin,
@@ -14,31 +16,55 @@ import {
   Trash2,
   Loader2,
 } from 'lucide-react'
-import { UploadButton } from '@uploadthing/react'
-import type { OurFileRouter } from '@/lib/uploadthing'
 import type { Job } from '@/lib/types'
 import { formatSalary } from '@/lib/mappers'
 import { toast } from 'sonner'
+import { uploadResume } from '@/lib/cloudinary'
 
 interface ApplyJobModalProps {
   isOpen: boolean
   onClose: () => void
   job: Job | null
   defaultEmail?: string
-  onSubmit: (data: { jobId?: string; coverLetter: string; resumeUrl?: string; contactEmail?: string }) => Promise<void>
+  defaultName?: string
+  onSubmit: (data: { jobId?: string; guestName?: string; coverLetter: string; resumeUrl?: string; contactEmail?: string }) => Promise<void>
   isSubmitting?: boolean
 }
 
-export default function ApplyJobModal({ isOpen, onClose, job, defaultEmail = '', onSubmit, isSubmitting = false }: ApplyJobModalProps) {
+export default function ApplyJobModal({ isOpen, onClose, job, defaultEmail = '', defaultName = '', onSubmit, isSubmitting = false }: ApplyJobModalProps) {
   const [showApplicationForm, setShowApplicationForm] = useState(false)
   const [coverLetter, setCoverLetter] = useState('')
   const [resumeUrl, setResumeUrl] = useState('')
   const [resumeFileName, setResumeFileName] = useState('')
   const [submitting, setSubmitting] = useState(false)
-  const [contactPreference, setContactPreference] = useState<'current' | 'new'>('current')
-  const [contactEmail, setContactEmail] = useState('')
+  const [guestName, setGuestName] = useState(defaultName)
+  const [contactEmail, setContactEmail] = useState(defaultEmail)
+  const [uploadingResume, setUploadingResume] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleApplyClick = () => setShowApplicationForm(true)
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadingResume(true)
+    try {
+      const url = await uploadResume(file)
+      setResumeUrl(url)
+      setResumeFileName(file.name)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Resume upload failed')
+      e.target.value = ''
+    } finally {
+      setUploadingResume(false)
+    }
+  }
+
+  const removeResume = () => {
+    setResumeUrl('')
+    setResumeFileName('')
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -46,9 +72,10 @@ export default function ApplyJobModal({ isOpen, onClose, job, defaultEmail = '',
     try {
       await onSubmit({
         jobId: job?.id,
+        guestName: guestName.trim() || undefined,
         coverLetter,
         resumeUrl: resumeUrl || undefined,
-        contactEmail: contactPreference === 'new' && contactEmail.trim() ? contactEmail.trim().toLowerCase() : undefined,
+        contactEmail: contactEmail.trim() ? contactEmail.trim().toLowerCase() : undefined,
       })
     } finally {
       setSubmitting(false)
@@ -60,8 +87,9 @@ export default function ApplyJobModal({ isOpen, onClose, job, defaultEmail = '',
     setCoverLetter('')
     setResumeUrl('')
     setResumeFileName('')
-    setContactPreference('current')
-    setContactEmail('')
+    setGuestName(defaultName)
+    setContactEmail(defaultEmail)
+    if (fileInputRef.current) fileInputRef.current.value = ''
     onClose()
   }
 
@@ -210,9 +238,9 @@ export default function ApplyJobModal({ isOpen, onClose, job, defaultEmail = '',
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-neutral-300 mb-2">
-                      Resume (PDF)
-                    </label>
+                    <Label htmlFor="resume" className="text-sm font-medium text-neutral-300 mb-2 block">
+                      Resume (PDF, DOC, DOCX)
+                    </Label>
                     {resumeUrl ? (
                       <div className="flex items-center gap-3 bg-neutral-800 border border-neutral-700 rounded-lg p-3">
                         <FileText className="w-5 h-5 text-emerald-400 flex-shrink-0" />
@@ -222,41 +250,38 @@ export default function ApplyJobModal({ isOpen, onClose, job, defaultEmail = '',
                         </div>
                         <button
                           type="button"
-                          onClick={() => { setResumeUrl(''); setResumeFileName('') }}
-                          className="text-neutral-400 hover:text-red-400 transition-colors"
+                          onClick={removeResume}
+                          className="text-neutral-400 hover:text-red-400 transition-colors p-2"
+                          aria-label="Remove resume"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
-                    ) : (
-                      <div className="bg-neutral-800 border border-dashed border-neutral-700 rounded-lg p-4">
-                        <UploadButton<OurFileRouter, "resumeUploader">
-                          endpoint="resumeUploader"
-                          onClientUploadComplete={(res) => {
-                            if ((res as any)?.[0]) {
-                              setResumeUrl((res as any)[0].url)
-                              setResumeFileName((res as any)[0].name || 'Resume.pdf')
-                            }
-                          }}
-                          onUploadError={(err) => { toast.error(typeof err === 'string' ? err : err.message) }}
-                          appearance={{
-                            container: { width: '100%' },
-                            button: {
-                              background: 'transparent',
-                              border: 'none',
-                              padding: '1rem',
-                              color: '#a3a3a3',
-                              fontSize: '0.875rem',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              flexDirection: 'column',
-                              alignItems: 'center',
-                              gap: '0.5rem',
-                            },
-                            allowedContent: { display: 'none' },
-                          }}
-                        />
+                    ) : uploadingResume ? (
+                      <div className="flex items-center justify-center gap-2 bg-neutral-800 border border-dashed border-neutral-700 rounded-lg p-6">
+                        <Loader2 className="w-5 h-5 text-emerald-400 animate-spin" />
+                        <span className="text-sm text-neutral-400">Uploading resume…</span>
                       </div>
+                    ) : (
+                      <label
+                        htmlFor="resume"
+                        className="flex flex-col items-center justify-center gap-2 bg-neutral-800 border border-dashed border-neutral-700 rounded-lg p-6 cursor-pointer hover:border-neutral-500 transition-colors"
+                      >
+                        <Upload className="w-6 h-6 text-neutral-400" />
+                        <span className="text-sm text-neutral-300">Click to choose a file</span>
+                        <span className="text-xs text-neutral-500">PDF, DOC, or DOCX up to 10 MB</span>
+                        <input
+                          ref={fileInputRef}
+                          id="resume"
+                          name="resume"
+                          type="file"
+                          accept=".pdf,.doc,.docx"
+                          onChange={handleFileChange}
+                          className="sr-only"
+                          aria-label="Upload resume"
+                          disabled={uploadingResume}
+                        />
+                      </label>
                     )}
                   </div>
 
@@ -278,49 +303,39 @@ export default function ApplyJobModal({ isOpen, onClose, job, defaultEmail = '',
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-neutral-300 mb-2">
+                    <Label htmlFor="guestName" className="text-sm font-medium text-neutral-300 mb-2 block">
+                      Full name
+                    </Label>
+                    <Input
+                      id="guestName"
+                      name="guestName"
+                      type="text"
+                      value={guestName}
+                      onChange={(e) => setGuestName(e.target.value)}
+                      placeholder="e.g. Jane Doe"
+                      autoComplete="name"
+                      className="bg-neutral-800 border-neutral-700 text-white placeholder:text-neutral-500 focus:border-emerald-500 focus:ring-emerald-500"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="contactEmail" className="text-sm font-medium text-neutral-300 mb-2 block">
                       How can we contact you?
-                    </label>
+                    </Label>
                     <p className="text-xs text-neutral-500 mb-3">
                       We&apos;ll use this email to continue the application process. All follow-up will be sent here.
                     </p>
-                    <div className="space-y-3">
-                      <label className="flex items-start gap-3 p-3 rounded-lg bg-neutral-800 border border-neutral-700 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="contactPreference"
-                          checked={contactPreference === 'current'}
-                          onChange={() => setContactPreference('current')}
-                          className="mt-1 accent-emerald-500"
-                        />
-                        <span className="text-sm">
-                          <span className="block font-medium text-white">Use my account email (default)</span>
-                          <span className="block text-xs text-neutral-400 mt-0.5 break-all">{defaultEmail || 'Your registration email'}</span>
-                        </span>
-                      </label>
-                      <label className="flex items-start gap-3 p-3 rounded-lg bg-neutral-800 border border-neutral-700 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="contactPreference"
-                          checked={contactPreference === 'new'}
-                          onChange={() => setContactPreference('new')}
-                          className="mt-1 accent-emerald-500"
-                        />
-                        <span className="text-sm">
-                          <span className="block font-medium text-white">Use a different email</span>
-                          <span className="block text-xs text-neutral-400 mt-0.5">Emails about this application will go to the address you enter</span>
-                        </span>
-                      </label>
-                      {contactPreference === 'new' && (
-                        <input
-                          type="email"
-                          value={contactEmail}
-                          onChange={(e) => setContactEmail(e.target.value)}
-                          placeholder="e.g. jane@example.com"
-                          className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2.5 text-white placeholder:text-neutral-500 focus:border-emerald-500 focus:ring-emerald-500 text-sm"
-                        />
-                      )}
-                    </div>
+                    <Input
+                      id="contactEmail"
+                      name="contactEmail"
+                      type="email"
+                      required
+                      value={contactEmail}
+                      onChange={(e) => setContactEmail(e.target.value)}
+                      placeholder="e.g. jane@example.com"
+                      autoComplete="email"
+                      className="bg-neutral-800 border-neutral-700 text-white placeholder:text-neutral-500 focus:border-emerald-500 focus:ring-emerald-500"
+                    />
                   </div>
 
                   <div className="flex gap-3 pt-4">

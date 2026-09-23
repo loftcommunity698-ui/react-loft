@@ -61,7 +61,7 @@ export function ScheduleInterviewModal({ applicationId, open, onClose, onSchedul
                 value={form.scheduledAt}
                 onChange={(e) => setForm((f) => ({ ...f, scheduledAt: e.target.value }))}
                 required
-                className="w-full bg-muted border border-border text-foreground rounded-md px-3 py-2 text-sm"
+                className="w-full bg-muted border border-border text-foreground rounded-md px-3 py-2 text-base"
               />
             </div>
             <div className="space-y-2">
@@ -71,7 +71,7 @@ export function ScheduleInterviewModal({ applicationId, open, onClose, onSchedul
                 value={form.scheduledTime}
                 onChange={(e) => setForm((f) => ({ ...f, scheduledTime: e.target.value }))}
                 required
-                className="w-full bg-muted border border-border text-foreground rounded-md px-3 py-2 text-sm"
+                className="w-full bg-muted border border-border text-foreground rounded-md px-3 py-2 text-base"
               />
             </div>
           </div>
@@ -82,7 +82,7 @@ export function ScheduleInterviewModal({ applicationId, open, onClose, onSchedul
               <select
                 value={form.duration}
                 onChange={(e) => setForm((f) => ({ ...f, duration: e.target.value }))}
-                className="w-full bg-muted border border-border text-foreground rounded-md px-3 py-2 text-sm"
+                className="w-full bg-muted border border-border text-foreground rounded-md px-3 py-2 text-base"
               >
                 <option value="30">30 minutes</option>
                 <option value="45">45 minutes</option>
@@ -95,7 +95,7 @@ export function ScheduleInterviewModal({ applicationId, open, onClose, onSchedul
               <select
                 value={form.type}
                 onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}
-                className="w-full bg-muted border border-border text-foreground rounded-md px-3 py-2 text-sm"
+                className="w-full bg-muted border border-border text-foreground rounded-md px-3 py-2 text-base"
               >
                 <option value="PHONE">Phone</option>
                 <option value="VIDEO">Video</option>
@@ -113,7 +113,7 @@ export function ScheduleInterviewModal({ applicationId, open, onClose, onSchedul
               value={form.meetingLink}
               onChange={(e) => setForm((f) => ({ ...f, meetingLink: e.target.value }))}
               placeholder="https://meet.google.com/..."
-              className="w-full bg-muted border border-border text-foreground rounded-md px-3 py-2 text-sm"
+              className="w-full bg-muted border border-border text-foreground rounded-md px-3 py-2 text-base"
             />
           </div>
 
@@ -124,7 +124,7 @@ export function ScheduleInterviewModal({ applicationId, open, onClose, onSchedul
               value={form.location}
               onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))}
               placeholder="Room 301, Main Office"
-              className="w-full bg-muted border border-border text-foreground rounded-md px-3 py-2 text-sm"
+              className="w-full bg-muted border border-border text-foreground rounded-md px-3 py-2 text-base"
             />
           </div>
 

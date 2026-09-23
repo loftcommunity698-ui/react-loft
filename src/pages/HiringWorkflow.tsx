@@ -130,7 +130,7 @@ export default function HiringWorkflowPage() {
               <select
                 value={selectedJobId?.toString() || ''}
                 onChange={(e) => setSelectedJobId(parseInt(e.target.value))}
-                className="w-full max-w-[280px] bg-muted border border text-foreground rounded-md px-3 py-2 text-sm"
+                className="w-full max-w-[280px] bg-muted border border text-foreground rounded-md px-3 py-2 text-base"
               >
                 <option value="" disabled>Select a job...</option>
                 {jobs.map((job) => (

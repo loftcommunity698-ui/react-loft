@@ -78,7 +78,7 @@ const MultipleSelector = React.forwardRef<{ selectedValue: Option[]; input: HTML
 
     return (
       <Command shouldFilter={false} className="overflow-visible bg-transparent">
-        <div className={cn('group rounded-md border border-input px-3 py-2 text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2', className)}>
+        <div className={cn('group rounded-md border border-input px-3 py-2 text-base ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2', className)}>
           <div className="flex flex-wrap gap-1">
             {selected.map(option => (
               <Badge key={option.value} className={cn(badgeClassName)} data-fixed={option.fixed} data-disabled={disabled}>

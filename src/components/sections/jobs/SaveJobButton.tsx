@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Bookmark, Loader2 } from 'lucide-react'
 import { useAuth } from '@/providers/AuthProvider'
-import { Link } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import api from '@/lib/api'
 
 interface SaveJobButtonProps {
@@ -12,19 +12,25 @@ interface SaveJobButtonProps {
 
 export default function SaveJobButton({ jobId, initiallySaved = false, className = '' }: SaveJobButtonProps) {
   const { user } = useAuth()
+  const navigate = useNavigate()
+  const location = useLocation()
   const [saved, setSaved] = useState(initiallySaved)
   const [loading, setLoading] = useState(false)
 
   if (!user) {
     return (
-      <Link
-        to="/login"
+      <button
+        type="button"
         className={`text-neutral-500 hover:text-neutral-300 transition-colors ${className}`}
         aria-label="Sign in to save jobs"
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          navigate('/login', { state: { redirect: location.pathname + location.search } })
+        }}
       >
         <Bookmark className="w-5 h-5" />
-      </Link>
+      </button>
     )
   }
 

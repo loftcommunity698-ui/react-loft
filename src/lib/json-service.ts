@@ -46,6 +46,9 @@ function matchJob(job: any, params: Record<string, string>): boolean {
       const match = job.title?.toLowerCase().includes(lower)
         || (job.company || '').toLowerCase().includes(lower)
         || (job.tags || []).some((t: string) => t.toLowerCase().includes(lower))
+        || (job.category || '').toLowerCase().includes(lower)
+        || (job.seniority || '').toLowerCase().includes(lower)
+        || (job.location || '').toLowerCase().includes(lower)
       if (!match) return false
     } else if (key === 'category') {
       if ((job.category || '').toLowerCase() !== lower) return false

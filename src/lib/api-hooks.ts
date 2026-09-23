@@ -277,7 +277,7 @@ export function useDashboardData(email?: string) {
 export function useApplyToJob() {
   const [applying, setApplying] = useState(false)
 
-  const apply = async (id: string, data: { coverLetter?: string; resumeUrl?: string; contactEmail?: string }) => {
+  const apply = async (id: string, data: { guestName?: string; coverLetter?: string; resumeUrl?: string; contactEmail?: string }) => {
     setApplying(true)
     try {
       const res = await api.post(`/jobs/${id}/apply`, data)

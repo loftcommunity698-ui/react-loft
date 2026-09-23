@@ -24,25 +24,32 @@ export default function JobDetail() {
   const { apply: applyToJob, applying } = useApplyToJob()
   const [showApply, setShowApply] = useState(false)
 
-  async function handleApply(data: { jobId?: string; coverLetter: string; resumeUrl?: string; contactEmail?: string }) {
-    if (!isAuthenticated) {
-      navigate('/login')
-      return
-    }
+  async function handleApply(data: { jobId?: string; guestName?: string; coverLetter: string; resumeUrl?: string; contactEmail?: string }) {
     try {
-      await applyToJob(id!, { coverLetter: data.coverLetter, resumeUrl: data.resumeUrl, contactEmail: data.contactEmail })
+      await applyToJob(id!, {
+        guestName: data.guestName,
+        contactEmail: data.contactEmail,
+        coverLetter: data.coverLetter,
+        resumeUrl: data.resumeUrl,
+      })
       const applicantEmail = data.contactEmail?.trim() || user?.email || ''
+      const applicantName = data.guestName || user?.firstName || 'there'
       if (applicantEmail && job) {
         sendApplicationConfirmation({
           to: applicantEmail,
-          applicantName: user?.firstName || 'there',
+          applicantName,
           jobTitle: job.title,
           companyName: job.company,
         }).catch(() => {})
       }
-      toast.success('Application submitted! We\'ll review your application and reach out via email for any further updates.')
-      setShowApply(false)
-      navigate('/dashboard', { state: { applySuccess: true } })
+      if (isAuthenticated) {
+        toast.success('Application submitted! We\'ll review your application and reach out via email for any further updates.')
+        setShowApply(false)
+        navigate('/dashboard', { state: { applySuccess: true } })
+      } else {
+        toast.success(`Application submitted! We'll notify you at ${applicantEmail}`)
+        setShowApply(false)
+      }
     } catch (err: any) {
       toast.error(err.response?.data?.error || err.response?.data?.message || 'Failed to apply')
     }
@@ -112,7 +119,7 @@ export default function JobDetail() {
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <SaveJobButton jobId={job.id} />
-                  <Button size="lg" className="bg-emerald-600 hover:bg-emerald-700" onClick={() => { if (!isAuthenticated) navigate('/login'); else setShowApply(true) }}>
+                  <Button size="lg" className="bg-emerald-600 hover:bg-emerald-700" onClick={() => setShowApply(true)}>
                     <Send className="h-4 w-4 mr-2" /> Apply Now
                   </Button>
                 </div>
@@ -194,6 +201,7 @@ export default function JobDetail() {
         onClose={() => setShowApply(false)}
         job={job}
         defaultEmail={user?.email ?? ''}
+        defaultName={user ? [user.firstName, user.lastName].filter(Boolean).join(' ') : ''}
         onSubmit={handleApply}
         isSubmitting={applying}
       />
