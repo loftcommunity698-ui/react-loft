@@ -1,0 +1,3 @@
+when the user submits an apllication, let a notification be sent to their email as well as sse event saying that their application has been submitted and would be reviewed and further communication would be done throught their email, the email used during registatation would be used and also there could also be a place to add, "How can we contact you" with the option of the current email or if they want to add another one to be used to continue the application process this is to say it's mainly working with email based remove the messages functionality but let notifications fly well herex
+
+remove the social icons links in the footer and team

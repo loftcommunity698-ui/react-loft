@@ -104,7 +104,7 @@ export async function getCompanyJobs(email?: string): Promise<any[]> {
 
 // ─── Jobs ────────────────────────────────────────────────────────────────────
 
-export async function applyToJob(id: string, body: { guestName?: string; coverLetter?: string; resumeUrl?: string; contactEmail?: string }): Promise<any> {
+export async function applyToJob(id: string, body: { guestName?: string; guestEmail?: string; coverLetter?: string; resumeUrl?: string; contactEmail?: string }): Promise<any> {
   const { data } = await api.post(`/jobs/${id}/apply`, body)
   return data
 }

@@ -28,6 +28,7 @@ export default function JobDetail() {
     try {
       await applyToJob(id!, {
         guestName: data.guestName,
+        guestEmail: data.contactEmail?.trim() || undefined,
         contactEmail: data.contactEmail,
         coverLetter: data.coverLetter,
         resumeUrl: data.resumeUrl,
