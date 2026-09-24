@@ -1,4 +1,12 @@
 import { send as emailjsSend } from '@emailjs/browser'
+import {
+  renderContactEmail,
+  renderApplicationConfirmation,
+  SUPPORT_EMAIL as DEFAULT_SUPPORT_EMAIL,
+  type RenderedEmail,
+  type ContactEmailInput,
+  type ApplicationConfirmationInput,
+} from './email-html'
 
 export type EmailType = 'contact' | 'application_confirmation'
 
@@ -19,9 +27,13 @@ export class EmailError extends Error {
 const PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY?.trim() || ''
 const SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID?.trim() || ''
 const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID?.trim() || ''
-const SUPPORT_EMAIL = import.meta.env.VITE_EMAILJS_SUPPORT_EMAIL?.trim() || 'loftcommunity698@gmail.com'
+const SUPPORT_EMAIL = import.meta.env.VITE_EMAILJS_SUPPORT_EMAIL?.trim() || DEFAULT_SUPPORT_EMAIL
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+type RenderInput =
+  | { kind: 'contact'; contact: ContactEmailInput }
+  | { kind: 'application_confirmation'; application_confirmation: ApplicationConfirmationInput }
 
 function assertConfigured(): void {
   if (!PUBLIC_KEY || !SERVICE_ID || !TEMPLATE_ID) {
@@ -35,12 +47,26 @@ function assertRecipient(email: string, type: EmailType): void {
   }
 }
 
+function renderForType(type: EmailType, input: RenderInput): RenderedEmail | undefined {
+  switch (type) {
+    case 'contact':
+      return input.kind === 'contact' ? renderContactEmail(input.contact) : undefined
+    case 'application_confirmation':
+      return input.kind === 'application_confirmation'
+        ? renderApplicationConfirmation(input.application_confirmation)
+        : undefined
+    default:
+      return undefined
+  }
+}
+
 interface EmailPayload {
   recipient: string
   fromName: string
   fromEmail: string
   subject: string
   message: string
+  renderInput: RenderInput
   extra?: EmailParams
 }
 
@@ -48,13 +74,16 @@ async function sendByType(type: EmailType, payload: EmailPayload): Promise<void>
   assertConfigured()
   assertRecipient(payload.recipient, type)
 
+  const rendered = renderForType(type, payload.renderInput)
+
   const params: EmailParams = {
     to_email: payload.recipient,
     from_name: payload.fromName,
     from_email: payload.fromEmail,
     reply_to: payload.fromEmail,
-    subject: payload.subject,
-    message: payload.message,
+    subject: rendered?.subject ?? payload.subject,
+    message: rendered?.message ?? payload.message,
+    ...(rendered?.html ? { html: rendered.html } : {}),
     ...(payload.extra ?? {}),
   }
 
@@ -76,7 +105,7 @@ async function sendByType(type: EmailType, payload: EmailPayload): Promise<void>
   }
 }
 
-export async function sendContactEmail(input: { name: string; email: string; subject: string; message: string }): Promise<void> {
+export async function sendContactEmail(input: ContactEmailInput): Promise<void> {
   const { name, email, subject, message } = input
   await sendByType('contact', {
     recipient: SUPPORT_EMAIL,
@@ -84,6 +113,7 @@ export async function sendContactEmail(input: { name: string; email: string; sub
     fromEmail: email,
     subject: `[Contact Support] ${subject}`,
     message: `From: ${name} (${email})\nSubject: ${subject}\n\n${message}`,
+    renderInput: { kind: 'contact', contact: { name, email, subject, message } },
   })
 }
 
@@ -95,7 +125,7 @@ export async function sendApplicationConfirmation(input: {
   dashboardUrl?: string
 }): Promise<void> {
   const { to, applicantName, jobTitle, companyName } = input
-  const dashboardUrl = input.dashboardUrl ?? `${window.location.origin}/dashboard/applications`
+  const dashboardUrl = input.dashboardUrl ?? `${window.location.origin}/applications`
   await sendByType('application_confirmation', {
     recipient: to,
     fromName: 'LoftCommunity',
@@ -118,6 +148,10 @@ export async function sendApplicationConfirmation(input: {
       '',
       'You received this email because you applied for a position on LoftCommunity.',
     ].join('\n'),
+    renderInput: {
+      kind: 'application_confirmation',
+      application_confirmation: { applicantName, jobTitle, companyName, dashboardUrl },
+    },
   })
 }
 
