@@ -22,7 +22,7 @@ export const SUPPORT_EMAIL = 'loftcommunity698@gmail.com'
 
 const FONT_FAMILY = "-apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif"
 
-const LOGO_URL = 'https://loft-frontend.onrender.com/email-logo.png'
+const LOGO_SRC = 'cid:email-logo.png'
 
 function escapeHtml(value: string): string {
   return value
@@ -88,7 +88,7 @@ function headerBand(origin: string): string {
   <tr>
     <td class="header-bar" align="center" bgcolor="#1b161d" style="box-sizing:border-box; padding:24px 16px; text-align:center; background-color:#1b161d;">
       <a href="${escapeHtml(origin)}" rel="noopener" target="_blank" style="box-sizing:border-box; text-decoration:none;">
-        <img class="email-logo" alt="LoftCommunity" width="300" height="192" src="${LOGO_URL}" style="display:block;max-width:300px;height:auto;border:0;margin:0 auto;">
+        <img class="email-logo" alt="LoftCommunity" width="300" height="192" src="${LOGO_SRC}" style="display:block;max-width:300px;height:auto;border:0;margin:0 auto;">
       </a>
     </td>
   </tr>
